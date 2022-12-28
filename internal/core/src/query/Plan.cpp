@@ -91,6 +91,11 @@ GetFieldID(const Plan* plan) {
 }
 
 int64_t
+GetFieldID(const Plan* plan) {
+    return plan->plan_node_->search_info_.field_id_.get();
+}
+
+int64_t
 GetNumOfQueries(const PlaceholderGroup* group) {
     return group->at(0).num_of_queries_;
 }

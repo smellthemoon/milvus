@@ -24,6 +24,7 @@ struct SmallIndexConf {
     std::string index_type;
     nlohmann::json build_params;
     nlohmann::json search_params;
+    nlohmann::json range_search_params;
 };
 
 class SegcoreConfig {
@@ -33,6 +34,7 @@ class SegcoreConfig {
         SmallIndexConf sub_conf;
         sub_conf.build_params["nlist"] = std::to_string(nlist_);
         sub_conf.search_params["nprobe"] = nprobe_;
+        sub_conf.range_search_params["radius_low_bound"];
         sub_conf.index_type = "IVF";
         table_[knowhere::metric::L2] = sub_conf;
         table_[knowhere::metric::IP] = sub_conf;

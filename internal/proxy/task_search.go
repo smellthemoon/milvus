@@ -100,6 +100,16 @@ func getPartitionIDs(ctx context.Context, collectionName string, partitionNames 
 
 func parseSearchParams(searchParamsPair []*commonpb.KeyValuePair) (string, error) {
 	searchParamStr, err := funcutil.GetAttrByKeyFromRepeatedKV(SearchParamsKey, searchParamsPair)
+	rangeSearchParamStr, err1 := funcutil.GetAttrByKeyFromRepeatedKV(RangeSearchParamsKey, searchParamsPair)
+	if err1 != nil {
+		log.Info("has no rangeSearch params")
+	} else {
+		// only support range search params like [a,b]
+		err1 := checkRangeSearchParam(rangeSearchParamStr)
+		if err1 != nil {
+			return "", fmt.Errorf("range search params in wrong format:%w", err)
+		}
+	}
 	if Params.AutoIndexConfig.Enable.GetAsBool() {
 		searchParamMap := make(map[string]interface{})
 		var level int
@@ -210,6 +220,12 @@ func parseSearchInfo(searchParamsPair []*commonpb.KeyValuePair) (*planpb.QueryIn
 	if err != nil {
 		return nil, 0, err
 	}
+
+	rangeSearchParamStr, err := funcutil.GetAttrByKeyFromRepeatedKV(RangeSearchParamsKey, searchParamsPair)
+	if err != nil {
+		log.Info("has no rangeSearch params")
+	}
+	searchParamStr += rangeSearchParamStr
 	return &planpb.QueryInfo{
 		Topk:         queryTopK,
 		MetricType:   metricType,

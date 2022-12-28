@@ -41,14 +41,15 @@ import (
 )
 
 const (
-	AnnsFieldKey    = "anns_field"
-	TopKKey         = "topk"
-	NQKey           = "nq"
-	MetricTypeKey   = "metric_type"
-	SearchParamsKey = "params"
-	RoundDecimalKey = "round_decimal"
-	OffsetKey       = "offset"
-	LimitKey        = "limit"
+	AnnsFieldKey         = "anns_field"
+	TopKKey              = "topk"
+	NQKey                = "nq"
+	MetricTypeKey        = "metric_type"
+	SearchParamsKey      = "params"
+	RangeSearchParamsKey = "radius"
+	RoundDecimalKey      = "round_decimal"
+	OffsetKey            = "offset"
+	LimitKey             = "limit"
 
 	InsertTaskName             = "InsertTask"
 	CreateCollectionTaskName   = "CreateCollectionTask"

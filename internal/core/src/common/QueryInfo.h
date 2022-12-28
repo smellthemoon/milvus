@@ -27,6 +27,7 @@ struct SearchInfo {
     FieldId field_id_;
     MetricType metric_type_;
     Config search_params_;
+    Config range_search_params_;
 };
 
 using SearchInfoPtr = std::shared_ptr<SearchInfo>;
