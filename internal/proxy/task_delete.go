@@ -287,7 +287,6 @@ func (dt *deleteTask) Execute(ctx context.Context) (err error) {
 		curMsg.Timestamps = append(curMsg.Timestamps, dt.deleteMsg.Timestamps[index])
 		typeutil.AppendIDs(curMsg.PrimaryKeys, dt.deleteMsg.PrimaryKeys, index)
 		curMsg.NumRows++
-		curMsg.ShardName = vchannel
 	}
 
 	// send delete request to log broker
