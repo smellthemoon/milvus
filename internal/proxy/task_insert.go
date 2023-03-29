@@ -223,6 +223,7 @@ func (it *insertTask) PreExecute(ctx context.Context) error {
 		return err
 	}
 
+<<<<<<< HEAD
 	// check that all field's number rows are equal
 	if err = it.CheckAligned(); err != nil {
 		log.Error("field data is not aligned", zap.Int64("msgID", it.Base.MsgID), zap.String("collection name", collectionName), zap.Error(err))
@@ -230,6 +231,9 @@ func (it *insertTask) PreExecute(ctx context.Context) error {
 	}
 
 	if err := newValidateUtil(withNANCheck()).Validate(it.GetFieldsData(), it.schema, it.NRows()); err != nil {
+=======
+	if err := newValidateUtil(withNANCheck()).Validate(it.insertMsg.GetFieldsData(), schema, it.insertMsg.NRows()); err != nil {
+>>>>>>> b1992e84c (Delete dup check (#23076))
 		return err
 	}
 
