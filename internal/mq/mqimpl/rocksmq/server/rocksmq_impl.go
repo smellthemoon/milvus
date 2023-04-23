@@ -42,8 +42,12 @@ type UniqueID = typeutil.UniqueID
 // RmqState Rocksmq state
 type RmqState = int64
 
+<<<<<<< HEAD
 // RocksmqPageSize is the size of a message page, default 256MB
 var RocksmqPageSize int64 = 64 << 20
+=======
+// RocksmqPageSize is the size of a message page, default 64MB
+>>>>>>> c51f1bbef (Change some configurations, include change the defaultChannelNum to 16)
 
 // RocksDB cache size limitation(TODO config it)
 var RocksDBLRUCacheMinCapacity = uint64(1 << 29)

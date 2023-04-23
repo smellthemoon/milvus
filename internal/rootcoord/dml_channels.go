@@ -136,13 +136,35 @@ type dmlChannels struct {
 	capacity   int64
 	// pool maintains channelName => dmlMsgStream mapping, stable
 	pool sync.Map
-	// mut protects channlsHeap only
+	// mut protects channelsHeap only
 	mut sync.Mutex
 	// channelsHeap is the heap to pop next dms for use
 	channelsHeap channelsHeap
 }
 
+<<<<<<< HEAD
 func newDmlChannels(ctx context.Context, factory msgstream.Factory, chanNamePrefix string, chanNum int64) *dmlChannels {
+=======
+func newDmlChannels(ctx context.Context, factory msgstream.Factory, chanNamePrefixDefault string, chanNumDefault int64) *dmlChannels {
+	params := paramtable.Get().CommonCfg
+	var (
+		chanNamePrefix string
+		chanNum        int64
+		names          []string
+	)
+
+	// if topic created, use the existed topic
+	if params.PreCreatedTopicEnabled.GetAsBool() {
+		chanNamePrefix = ""
+		chanNum = int64(len(params.TopicNames.GetAsStrings())) + chanNumDefault
+		names = params.TopicNames.GetAsStrings()
+	} else {
+		chanNamePrefix = chanNamePrefixDefault
+		chanNum = chanNumDefault
+		names = genChannelNames(chanNamePrefix, chanNum)
+	}
+
+>>>>>>> c51f1bbef (Change some configurations, include change the defaultChannelNum to 16)
 	d := &dmlChannels{
 		ctx:          ctx,
 		factory:      factory,
