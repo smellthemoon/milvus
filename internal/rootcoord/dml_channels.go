@@ -20,8 +20,6 @@ import (
 	"container/heap"
 	"context"
 	"fmt"
-	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/milvus-io/milvus/pkg/metrics"
@@ -147,23 +145,36 @@ type dmlChannels struct {
 	channelsHeap channelsHeap
 }
 
-func newDmlChannels(ctx context.Context, factory msgstream.Factory, chanNamePrefixDefault string, chanNumDefault int64) *dmlChannels {
+func newDmlChannels(ctx context.Context, factory msgstream.Factory, chanNamePrefixDefault string, chanMap map[typeutil.UniqueID][]string) *dmlChannels {
 	params := paramtable.Get().CommonCfg
 	var (
 		chanNamePrefix string
 		chanNum        int64
+		chanNumUsed    int64
 		names          []string
+		namesUsed      []string
 	)
+
+	// if the old channels number used by the user is greater than the set default value currently
+	// keep the old channels
+	namesUsed = getUsedChannelNames(chanMap)
+	chanNumUsed = int64(len(namesUsed))
 
 	// if topic created, use the existed topic
 	if params.PreCreatedTopicEnabled.GetAsBool() {
 		chanNamePrefix = ""
-		chanNum = int64(len(params.TopicNames.GetAsStrings())) + chanNumDefault
+		chanNum = int64(len(params.TopicNames.GetAsStrings())) + chanNumUsed
 		names = params.TopicNames.GetAsStrings()
+		names = append(names, namesUsed...)
 	} else {
 		chanNamePrefix = chanNamePrefixDefault
-		chanNum = chanNumDefault
-		names = genChannelNames(chanNamePrefix, chanNum)
+		if chanNumUsed > Params.RootCoordCfg.DmlChannelNum.GetAsInt64() {
+			chanNum = chanNumUsed
+			names = namesUsed
+		} else {
+			chanNum = Params.RootCoordCfg.DmlChannelNum.GetAsInt64()
+			names = genChannelNames(chanNamePrefix, chanNum, namesUsed)
+		}
 	}
 
 	d := &dmlChannels{
@@ -205,9 +216,11 @@ func newDmlChannels(ctx context.Context, factory msgstream.Factory, chanNamePref
 			pos:    i,
 		}
 		d.pool.Store(name, dms)
+		log.Info("lxg debug", zap.Any("index", i), zap.Any("name", name))
 		d.channelsHeap = append(d.channelsHeap, dms)
 	}
 
+	log.Info("lxg debug", zap.Any("names", names))
 	heap.Init(&d.channelsHeap)
 
 	log.Info("init dml channels", zap.String("prefix", chanNamePrefix), zap.Int64("num", chanNum))
@@ -351,40 +364,53 @@ func getChannelName(prefix string, idx int64) string {
 	return fmt.Sprintf("%s_%d", prefix, idx)
 }
 
-func genChannelNames(prefix string, num int64) []string {
+func genChannelNames(prefix string, totalNum int64, usedNames []string) []string {
 	var results []string
-	for idx := int64(0); idx < num; idx++ {
+	chanNameSet := typeutil.NewSet[string]()
+	for _, name := range usedNames {
+		if chanNameSet.Contain(name) {
+			log.Error("use repeated channel name", zap.String("chanName", name))
+			panic("use repeated channel name: " + name)
+		}
+		chanNameSet.Insert(name)
+	}
+
+	results = append(results, usedNames...)
+	num := totalNum - int64(len(usedNames))
+	if num < 0 {
+		panic("The number of all channels is less than the number of channels already used")
+	}
+
+	step := int64(0)
+	idx := int64(0)
+	for true {
+		if step >= num {
+			break
+		}
 		result := fmt.Sprintf("%s_%d", prefix, idx)
-		results = append(results, result)
+		if chanNameSet.Contain(result) {
+			log.Info("the channelName has already in use, change another", zap.String("chanName", result))
+		} else {
+			results = append(results, result)
+			step++
+		}
+		idx++
 	}
 	return results
 }
 
-func parseChannelNameIndex(channeName string) int {
-	index := strings.LastIndex(channeName, "_")
-	if index < 0 {
-		log.Error("invalid channel name", zap.String("chanName", channeName))
-		panic("invalid channel name: " + channeName)
-	}
-	index, err := strconv.Atoi(channeName[index+1:])
-	if err != nil {
-		log.Error("invalid channel name", zap.String("chanName", channeName), zap.Error(err))
-		panic("invalid channel name: " + channeName)
-	}
-	return index
-}
-
-func getNeedChanNum(setNum int, chanMap map[typeutil.UniqueID][]string) int {
-	// find the largest number of current channel usage
-	maxChanUsed := setNum
-	for _, chanNames := range chanMap {
-		for _, chanName := range chanNames {
-			index := parseChannelNameIndex(chanName)
-			if maxChanUsed < index+1 {
-				maxChanUsed = index + 1
+func getUsedChannelNames(chanMap map[typeutil.UniqueID][]string) []string {
+	chanNameSet := typeutil.NewSet[string]()
+	chanNames := make([]string, 0)
+	for _, names := range chanMap {
+		for _, name := range names {
+			if chanNameSet.Contain(name) {
+				continue
 			}
+			chanNameSet.Insert(name)
+			chanNames = append(chanNames, name)
 		}
 	}
 
-	return maxChanUsed
+	return chanNames
 }

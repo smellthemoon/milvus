@@ -127,13 +127,19 @@ func TestDmlChannels(t *testing.T) {
 		dmlChanPrefix      = "rootcoord-dml"
 		totalDmlChannelNum = 2
 	)
+
+	paramtable.Get().Save(Params.RootCoordCfg.DmlChannelNum.Key, "2")
+	paramtable.Get().Save(Params.CommonCfg.RootCoordDml.Key, dmlChanPrefix)
+	defer paramtable.Get().Reset(Params.RootCoordCfg.DmlChannelNum.Key)
+	defer paramtable.Get().Reset(Params.CommonCfg.RootCoordDml.Key)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	factory := dependency.NewDefaultFactory(true)
 	Params.Init()
 
-	dml := newDmlChannels(ctx, factory, dmlChanPrefix, totalDmlChannelNum)
+	dml := newDmlChannels(ctx, factory, Params.CommonCfg.RootCoordDml.GetValue(), nil)
 	chanNames := dml.listChannels()
 	assert.Equal(t, 0, len(chanNames))
 
@@ -165,23 +171,28 @@ func TestDmlChannels(t *testing.T) {
 	defer paramtable.Get().Reset(Params.CommonCfg.PreCreatedTopicEnabled.Key)
 	defer paramtable.Get().Reset(Params.CommonCfg.TopicNames.Key)
 
-	assert.Panics(t, func() { newDmlChannels(ctx, factory, dmlChanPrefix, totalDmlChannelNum) })
+	assert.Panics(t, func() { newDmlChannels(ctx, factory, Params.CommonCfg.RootCoordDml.GetValue(), nil) })
 }
 
 func TestDmChannelsFailure(t *testing.T) {
 	var wg sync.WaitGroup
+	paramtable.Get().Save(Params.RootCoordCfg.DmlChannelNum.Key, "1")
+	paramtable.Get().Save(Params.CommonCfg.RootCoordDml.Key, "rootcoord-dml")
+	defer paramtable.Get().Reset(Params.RootCoordCfg.DmlChannelNum.Key)
+	defer paramtable.Get().Reset(Params.CommonCfg.RootCoordDml.Key)
+
 	wg.Add(1)
 	t.Run("Test newDmlChannels", func(t *testing.T) {
 		defer wg.Done()
 		mockFactory := &FailMessageStreamFactory{}
-		assert.Panics(t, func() { newDmlChannels(context.TODO(), mockFactory, "test-newdmlchannel-root", 1) })
+		assert.Panics(t, func() { newDmlChannels(context.TODO(), mockFactory, "test-newdmlchannel-root", nil) })
 	})
 
 	wg.Add(1)
 	t.Run("Test broadcast", func(t *testing.T) {
 		defer wg.Done()
 		mockFactory := &FailMessageStreamFactory{errBroadcast: true}
-		dml := newDmlChannels(context.TODO(), mockFactory, "test-newdmlchannel-root", 1)
+		dml := newDmlChannels(context.TODO(), mockFactory, "test-newdmlchannel-root", nil)
 		chanName0 := dml.getChannelNames(1)[0]
 		dml.addChannels(chanName0)
 		require.Equal(t, 1, dml.getChannelNum())
