@@ -70,9 +70,9 @@ const (
 // ReportImportAttempts is the maximum # of attempts to retry when import fails.
 var ReportImportAttempts uint = 10
 
-type ImportFlushFunc func(fields map[storage.FieldID]storage.FieldData, shardID int) error
+type ImportFlushFunc func(fields map[storage.FieldID]storage.FieldData, nullMap map[storage.FieldID][]bool, shardID int) error
 type AssignSegmentFunc func(shardID int) (int64, string, error)
-type CreateBinlogsFunc func(fields map[storage.FieldID]storage.FieldData, segmentID int64) ([]*datapb.FieldBinlog, []*datapb.FieldBinlog, error)
+type CreateBinlogsFunc func(fields map[storage.FieldID]storage.FieldData, nullMap map[storage.FieldID][]bool, segmentID int64) ([]*datapb.FieldBinlog, []*datapb.FieldBinlog, error)
 type SaveSegmentFunc func(fieldsInsert []*datapb.FieldBinlog, fieldsStats []*datapb.FieldBinlog, segmentID int64, targetChName string, rowCount int64) error
 
 type WorkingSegment struct {
@@ -289,9 +289,9 @@ func (p *ImportWrapper) Import(filePaths []string, options ImportOptions) error 
 		// parse and consume column-based files(currently support numpy)
 		// for column-based files, the NumpyParser will generate autoid for primary key, and split rows into segments
 		// according to shard number, so the flushFunc will be called in the NumpyParser
-		flushFunc := func(fields map[storage.FieldID]storage.FieldData, shardID int) error {
+		flushFunc := func(fields map[storage.FieldID]storage.FieldData, nullMap map[storage.FieldID][]bool, shardID int) error {
 			printFieldsDataInfo(fields, "import wrapper: prepare to flush binlog data", filePaths)
-			return p.flushFunc(fields, shardID)
+			return p.flushFunc(fields, nullMap, shardID)
 		}
 		parser, err := NewNumpyParser(p.ctx, p.collectionSchema, p.rowIDAllocator, p.shardNum, SingleBlockSize,
 			p.chunkManager, flushFunc, p.updateProgressPercent)
@@ -391,9 +391,9 @@ func (p *ImportWrapper) isBinlogImport(filePaths []string) bool {
 func (p *ImportWrapper) doBinlogImport(filePaths []string, tsStartPoint uint64, tsEndPoint uint64) error {
 	tr := timerecord.NewTimeRecorder("Import task")
 
-	flushFunc := func(fields map[storage.FieldID]storage.FieldData, shardID int) error {
+	flushFunc := func(fields map[storage.FieldID]storage.FieldData, nullMap map[storage.FieldID][]bool, shardID int) error {
 		printFieldsDataInfo(fields, "import wrapper: prepare to flush binlog data", filePaths)
-		return p.flushFunc(fields, shardID)
+		return p.flushFunc(fields, nullMap, shardID)
 	}
 	parser, err := NewBinlogParser(p.ctx, p.collectionSchema, p.shardNum, SingleBlockSize, p.chunkManager, flushFunc,
 		p.updateProgressPercent, tsStartPoint, tsEndPoint)
@@ -433,14 +433,14 @@ func (p *ImportWrapper) parseRowBasedJSON(filePath string, onlyValidate bool) er
 	// if only validate, we input a empty flushFunc so that the consumer do nothing but only validation.
 	var flushFunc ImportFlushFunc
 	if onlyValidate {
-		flushFunc = func(fields map[storage.FieldID]storage.FieldData, shardID int) error {
+		flushFunc = func(fields map[storage.FieldID]storage.FieldData, nullMap map[storage.FieldID][]bool, shardID int) error {
 			return nil
 		}
 	} else {
-		flushFunc = func(fields map[storage.FieldID]storage.FieldData, shardID int) error {
+		flushFunc = func(fields map[storage.FieldID]storage.FieldData, nullMap map[storage.FieldID][]bool, shardID int) error {
 			var filePaths = []string{filePath}
 			printFieldsDataInfo(fields, "import wrapper: prepare to flush binlogs", filePaths)
-			return p.flushFunc(fields, shardID)
+			return p.flushFunc(fields, nullMap, shardID)
 		}
 	}
 
@@ -462,7 +462,7 @@ func (p *ImportWrapper) parseRowBasedJSON(filePath string, onlyValidate bool) er
 }
 
 // flushFunc is the callback function for parsers generate segment and save binlog files
-func (p *ImportWrapper) flushFunc(fields map[storage.FieldID]storage.FieldData, shardID int) error {
+func (p *ImportWrapper) flushFunc(fields map[storage.FieldID]storage.FieldData, nullMap map[storage.FieldID][]bool, shardID int) error {
 	// if fields data is empty, do nothing
 	var rowNum int
 	memSize := 0
@@ -514,7 +514,7 @@ func (p *ImportWrapper) flushFunc(fields map[storage.FieldID]storage.FieldData, 
 	}
 
 	// save binlogs
-	fieldsInsert, fieldsStats, err := p.createBinlogsFunc(fields, segment.segmentID)
+	fieldsInsert, fieldsStats, err := p.createBinlogsFunc(fields, nullMap, segment.segmentID)
 	if err != nil {
 		log.Error("import wrapper: failed to save binlogs", zap.Error(err), zap.Int("shardID", shardID),
 			zap.Int64("segmentID", segment.segmentID), zap.String("targetChannel", segment.targetChName))

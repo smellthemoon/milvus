@@ -301,7 +301,8 @@ func RowBasedInsertMsgToInsertData(msg *msgstream.InsertMsg, collSchema *schemap
 	}
 
 	idata = &InsertData{
-		Data: make(map[FieldID]FieldData),
+		Data:    make(map[FieldID]FieldData),
+		NullMap: msg.GetNullMap(),
 		// TODO: handle Infos.
 		Infos: nil,
 	}
@@ -394,7 +395,8 @@ func ColumnBasedInsertMsgToInsertData(msg *msgstream.InsertMsg, collSchema *sche
 	}
 
 	idata = &InsertData{
-		Data: make(map[FieldID]FieldData),
+		Data:    make(map[FieldID]FieldData),
+		NullMap: msg.GetNullMap(),
 		// TODO: handle Infos.
 		Infos: nil,
 	}
@@ -558,6 +560,7 @@ func ColumnBasedInsertMsgToInsertData(msg *msgstream.InsertMsg, collSchema *sche
 }
 
 func InsertMsgToInsertData(msg *msgstream.InsertMsg, schema *schemapb.CollectionSchema) (idata *InsertData, err error) {
+	//
 	if msg.IsRowBased() {
 		return RowBasedInsertMsgToInsertData(msg, schema)
 	}
@@ -731,16 +734,33 @@ func MergeFieldData(data *InsertData, fid FieldID, field FieldData) {
 	}
 }
 
+// MergeNullMap merge nullMap into data.
+func MergeNullMap(data *InsertData, fid FieldID, nullArray []bool) {
+	if len(nullArray) == 0 {
+		return
+	}
+	if _, ok := data.NullMap[fid]; !ok {
+		data.NullMap[fid] = make([]bool, 0)
+	}
+	nullData := data.NullMap[fid]
+	nullData = append(nullData, nullArray...)
+}
+
 // MergeInsertData merge insert datas. Maybe there are large write zoom if frequent inserts are met.
 func MergeInsertData(datas ...*InsertData) *InsertData {
 	ret := &InsertData{
-		Data:  make(map[FieldID]FieldData),
-		Infos: nil,
+		Data:    make(map[FieldID]FieldData),
+		NullMap: make(map[int64][]bool),
+		Infos:   nil,
 	}
 	for _, data := range datas {
 		if data != nil {
 			for fid, field := range data.Data {
 				MergeFieldData(ret, fid, field)
+			}
+
+			for fid, nullArray := range data.NullMap {
+				MergeNullMap(ret, fid, nullArray)
 			}
 
 			// TODO: handle storage.InsertData.Infos

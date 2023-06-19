@@ -159,10 +159,19 @@ func (it *insertTask) PreExecute(ctx context.Context) error {
 		}
 	}
 
+	// check if not nullable, the nullset can not has true
+	// check nullmap must be n*numrows
+	// can't mark null data when nullable is false
+	// check every key has the fieldname
+	err = it.checkNullAble(it.insertMsg.InsertRequest.GetNullMap())
+	if err != nil {
+		return err
+	}
+
 	// check primaryFieldData whether autoID is true or not
 	// set rowIDs as primary data if autoID == true
 	// TODO(dragondriver): in fact, NumRows is not trustable, we should check all input fields
-	it.result.IDs, err = checkPrimaryFieldData(it.schema, it.result, it.insertMsg, true)
+	it.result.IDs, err = checkPrimaryFieldData(it.schema, it.result, it.insertMsg, rowNum, true)
 	log := log.Ctx(ctx).With(zap.String("collectionName", collectionName))
 	if err != nil {
 		log.Error("check primary field data and hash primary key failed",

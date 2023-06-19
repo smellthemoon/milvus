@@ -2138,6 +2138,7 @@ func (node *Proxy) Insert(ctx context.Context, request *milvuspb.InsertRequest) 
 				FieldsData:     request.FieldsData,
 				NumRows:        uint64(request.NumRows),
 				Version:        msgpb.InsertDataVersion_ColumnBased,
+				NullMap:        request.NullMap,
 			},
 		},
 		idAllocator:   node.rowIDAllocator,
@@ -2367,6 +2368,7 @@ func (node *Proxy) Upsert(ctx context.Context, request *milvuspb.UpsertRequest) 
 			PartitionName:  request.PartitionName,
 			FieldsData:     request.FieldsData,
 			NumRows:        request.NumRows,
+			NullMap:        request.NullMap,
 		},
 
 		result: &milvuspb.MutationResult{

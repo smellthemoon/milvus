@@ -672,7 +672,7 @@ func assignSegmentFunc(node *DataNode, req *datapb.ImportTaskRequest) importutil
 }
 
 func createBinLogsFunc(node *DataNode, req *datapb.ImportTaskRequest, schema *schemapb.CollectionSchema, ts Timestamp) importutil.CreateBinlogsFunc {
-	return func(fields map[storage.FieldID]storage.FieldData, segmentID int64) ([]*datapb.FieldBinlog, []*datapb.FieldBinlog, error) {
+	return func(fields map[storage.FieldID]storage.FieldData, nullMap map[storage.FieldID][]bool, segmentID int64) ([]*datapb.FieldBinlog, []*datapb.FieldBinlog, error) {
 		var rowNum int
 		for _, field := range fields {
 			rowNum = field.RowNum()
@@ -693,7 +693,7 @@ func createBinLogsFunc(node *DataNode, req *datapb.ImportTaskRequest, schema *sc
 		colID := req.GetImportTask().GetCollectionId()
 		partID := req.GetImportTask().GetPartitionId()
 
-		fieldInsert, fieldStats, err := createBinLogs(rowNum, schema, ts, fields, node, segmentID, colID, partID)
+		fieldInsert, fieldStats, err := createBinLogs(rowNum, schema, ts, fields, nullMap, node, segmentID, colID, partID)
 		if err != nil {
 			log.Error("failed to create binlogs",
 				zap.Int64("task ID", importTaskID),
@@ -810,7 +810,7 @@ func composeAssignSegmentIDRequest(rowNum int, shardID int, chNames []string,
 }
 
 func createBinLogs(rowNum int, schema *schemapb.CollectionSchema, ts Timestamp,
-	fields map[storage.FieldID]storage.FieldData, node *DataNode, segmentID, colID, partID UniqueID) ([]*datapb.FieldBinlog, []*datapb.FieldBinlog, error) {
+	fields map[storage.FieldID]storage.FieldData, nullMap map[storage.FieldID][]bool, node *DataNode, segmentID, colID, partID UniqueID) ([]*datapb.FieldBinlog, []*datapb.FieldBinlog, error) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -823,6 +823,9 @@ func createBinLogs(rowNum int, schema *schemapb.CollectionSchema, ts Timestamp,
 		Data: tsFieldData,
 	}
 
+	nMap := make([]bool, len(tsFieldData))
+	nullMap[common.TimeStampField] = nMap
+
 	if status, _ := node.dataCoord.UpdateSegmentStatistics(context.TODO(), &datapb.UpdateSegmentStatisticsRequest{
 		Stats: []*commonpb.SegmentStats{{
 			SegmentID: segmentID,
@@ -833,7 +836,8 @@ func createBinLogs(rowNum int, schema *schemapb.CollectionSchema, ts Timestamp,
 	}
 
 	data := BufferData{buffer: &InsertData{
-		Data: fields,
+		Data:    fields,
+		NullMap: nullMap,
 	}}
 	data.updateSize(int64(rowNum))
 	meta := &etcdpb.CollectionMeta{

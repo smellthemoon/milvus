@@ -39,20 +39,20 @@ import (
 
 // PayloadWriterInterface abstracts PayloadWriter
 type PayloadWriterInterface interface {
-	AddDataToPayload(msgs interface{}, dim ...int) error
-	AddBoolToPayload(msgs []bool) error
-	AddByteToPayload(msgs []byte) error
-	AddInt8ToPayload(msgs []int8) error
-	AddInt16ToPayload(msgs []int16) error
-	AddInt32ToPayload(msgs []int32) error
-	AddInt64ToPayload(msgs []int64) error
-	AddFloatToPayload(msgs []float32) error
-	AddDoubleToPayload(msgs []float64) error
-	AddOneStringToPayload(msgs string) error
-	AddOneArrayToPayload(msg *schemapb.ScalarField) error
-	AddOneJSONToPayload(msg []byte) error
-	AddBinaryVectorToPayload(binVec []byte, dim int) error
-	AddFloatVectorToPayload(binVec []float32, dim int) error
+	AddDataToPayload(msgs interface{}, nullArray []bool, dim ...int) error
+	AddBoolToPayload(msgs []bool, nullArray []bool) error
+	AddByteToPayload(msgs []byte, nullArray []bool) error
+	AddInt8ToPayload(msgs []int8, nullArray []bool) error
+	AddInt16ToPayload(msgs []int16, nullArray []bool) error
+	AddInt32ToPayload(msgs []int32, nullArray []bool) error
+	AddInt64ToPayload(msgs []int64, nullArray []bool) error
+	AddFloatToPayload(msgs []float32, nullArray []bool) error
+	AddDoubleToPayload(msgs []float64, nullArray []bool) error
+	AddOneStringToPayload(msgs string, nullArray []bool) error
+	AddOneArrayToPayload(msg *schemapb.ScalarField, nullArray []bool) error
+	AddOneJSONToPayload(msg []byte, nullArray []bool) error
+	AddBinaryVectorToPayload(binVec []byte, nullArray []bool, dim int) error
+	AddFloatVectorToPayload(binVec []float32, nullArray []bool, dim int) error
 	FinishPayloadWriter() error
 	GetPayloadBufferFromWriter() ([]byte, error)
 	GetPayloadLengthFromWriter() (int, error)

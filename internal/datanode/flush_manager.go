@@ -343,6 +343,7 @@ func (m *rendezvousFlushManager) handleDeleteTask(segmentID UniqueID, task flush
 // flushBufferData notifies flush manager insert buffer data.
 // This method will be retired on errors. Final errors will be propagated upstream and logged.
 func (m *rendezvousFlushManager) flushBufferData(data *BufferData, segmentID UniqueID, flushed bool, dropped bool, pos *msgpb.MsgPosition) ([]*Blob, error) {
+	//
 	tr := timerecord.NewTimeRecorder("flushDuration")
 	// empty flush
 	if data == nil || data.buffer == nil {

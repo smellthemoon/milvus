@@ -190,6 +190,7 @@ func (ibNode *insertBufferNode) Operate(in []Msg) []Msg {
 	}
 
 	// insert messages -> buffer
+	//
 	for _, msg := range fgMsg.insertMessages {
 		err := ibNode.bufferInsertMsg(msg, startPositions[0], endPositions[0])
 		if err != nil {
@@ -588,7 +589,7 @@ func (ibNode *insertBufferNode) bufferInsertMsg(msg *msgstream.InsertMsg, startP
 			return fmt.Errorf("newBufferData failed, segment=%d, channel=%s, err=%w", currentSegID, ibNode.channelName, err)
 		}
 	}
-
+	//
 	addedBuffer, err := storage.InsertMsgToInsertData(msg, collSchema)
 	if err != nil {
 		log.Warn("failed to transfer insert msg to insert data", zap.Error(err))
