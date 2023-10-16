@@ -741,7 +741,7 @@ func newInsertBufferNode(
 	log.Info("datanode AsProducer", zap.String("TimeTickChannelName", Params.CommonCfg.DataCoordTimeTick.GetValue()))
 	var wTtMsgStream msgstream.MsgStream = wTt
 
-	mt := newMergedTimeTickerSender(func(ts Timestamp, segmentIDs []int64) error {
+	mt := getOrCreateMergedTimeTickerSender(func(ts Timestamp, segmentIDs []int64) error {
 		stats := make([]*commonpb.SegmentStats, 0, len(segmentIDs))
 		for _, sid := range segmentIDs {
 			stat, err := config.channel.getSegmentStatisticsUpdates(sid)
