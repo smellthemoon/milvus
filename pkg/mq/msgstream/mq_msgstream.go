@@ -316,6 +316,7 @@ func (ms *mqMsgStream) Produce(msgPack *MsgPack) error {
 			InjectCtx(spanCtx, msg.Properties)
 
 			ms.producerLock.RLock()
+			log.Debug("test replicate msg", zap.Int64("payload size", int64(len(msg.Payload)/1024/1024)), zap.String("channel name", channel))
 			if _, err := ms.producers[channel].Send(spanCtx, msg); err != nil {
 				ms.producerLock.RUnlock()
 				sp.RecordError(err)
