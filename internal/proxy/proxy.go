@@ -263,7 +263,7 @@ func (node *Proxy) Init() error {
 	node.chMgr = chMgr
 	log.Debug("create channels manager done", zap.String("role", typeutil.ProxyRole))
 
-	replicateMsgChannel := Params.CommonCfg.ReplicateMsgChannel.GetValue()
+	// replicateMsgChannel := Params.CommonCfg.ReplicateMsgChannel.GetValue()
 	node.replicateMsgStream, err = node.factory.NewMsgStream(node.ctx)
 	if err != nil {
 		log.Warn("failed to create replicate msg stream",
@@ -271,8 +271,8 @@ func (node *Proxy) Init() error {
 			zap.Error(err))
 		return err
 	}
-	node.replicateMsgStream.EnableProduce(true)
-	node.replicateMsgStream.AsProducer([]string{replicateMsgChannel})
+	// node.replicateMsgStream.EnableProduce(true)
+	// node.replicateMsgStream.AsProducer([]string{replicateMsgChannel})
 
 	node.sched, err = newTaskScheduler(node.ctx, node.tsoAllocator, node.factory)
 	if err != nil {

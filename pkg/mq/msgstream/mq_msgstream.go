@@ -122,6 +122,7 @@ func (ms *mqMsgStream) AsProducer(channels []string) {
 
 		fn := func() error {
 			pp, err := ms.client.CreateProducer(mqwrapper.ProducerOptions{Topic: channel, EnableCompression: true})
+			log.Info("test asproducer", zap.Any("topic", channel))
 			if err != nil {
 				return err
 			}
@@ -228,6 +229,7 @@ func (ms *mqMsgStream) Close() {
 	}
 
 	ms.client.Close()
+	ms.EnableProduce(false)
 	close(ms.receiveBuf)
 }
 
@@ -316,6 +318,7 @@ func (ms *mqMsgStream) Produce(msgPack *MsgPack) error {
 			InjectCtx(spanCtx, msg.Properties)
 
 			ms.producerLock.RLock()
+			log.Info("receive send msg", zap.Any("payload size", len(m)), zap.Any("channel", channel))
 			if _, err := ms.producers[channel].Send(spanCtx, msg); err != nil {
 				ms.producerLock.RUnlock()
 				sp.RecordError(err)
@@ -360,6 +363,7 @@ func (ms *mqMsgStream) Broadcast(msgPack *MsgPack) (map[string][]MessageID, erro
 
 		ms.producerLock.Lock()
 		for channel, producer := range ms.producers {
+			log.Info("receive broadcast msg", zap.Any("payload size", len(m)), zap.Any("channel", channel))
 			id, err := producer.Send(spanCtx, msg)
 			if err != nil {
 				ms.producerLock.Unlock()
@@ -593,6 +597,7 @@ func (ms *MqTtMsgStream) AsConsumer(ctx context.Context, channels []string, subN
 // Close will stop goroutine and free internal producers and consumers
 func (ms *MqTtMsgStream) Close() {
 	close(ms.syncConsumer)
+	log.Info("test mqclose close")
 	ms.mqMsgStream.Close()
 }
 

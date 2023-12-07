@@ -69,9 +69,9 @@ func (cdt *createDatabaseTask) PreExecute(ctx context.Context) error {
 func (cdt *createDatabaseTask) Execute(ctx context.Context) error {
 	var err error
 	cdt.result, err = cdt.rootCoord.CreateDatabase(ctx, cdt.CreateDatabaseRequest)
-	if cdt.result != nil && cdt.result.ErrorCode == commonpb.ErrorCode_Success {
-		SendReplicateMessagePack(ctx, cdt.replicateMsgStream, cdt.CreateDatabaseRequest)
-	}
+	// if cdt.result != nil && cdt.result.ErrorCode == commonpb.ErrorCode_Success {
+	// 	SendReplicateMessagePack(ctx, cdt.replicateMsgStream, cdt.CreateDatabaseRequest)
+	// }
 	return err
 }
 
@@ -140,7 +140,7 @@ func (ddt *dropDatabaseTask) Execute(ctx context.Context) error {
 
 	if ddt.result != nil && ddt.result.ErrorCode == commonpb.ErrorCode_Success {
 		globalMetaCache.RemoveDatabase(ctx, ddt.DbName)
-		SendReplicateMessagePack(ctx, ddt.replicateMsgStream, ddt.DropDatabaseRequest)
+		// SendReplicateMessagePack(ctx, ddt.replicateMsgStream, ddt.DropDatabaseRequest)
 	}
 	return err
 }

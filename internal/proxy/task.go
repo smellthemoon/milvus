@@ -1337,7 +1337,7 @@ func (t *flushTask) Execute(ctx context.Context) error {
 		coll2SealTimes[collName] = resp.GetTimeOfSeal()
 		coll2FlushTs[collName] = resp.GetFlushTs()
 	}
-	SendReplicateMessagePack(ctx, t.replicateMsgStream, t.FlushRequest)
+	// SendReplicateMessagePack(ctx, t.replicateMsgStream, t.FlushRequest)
 	t.result = &milvuspb.FlushResponse{
 		Status:          merr.Success(),
 		DbName:          t.GetDbName(),
@@ -1490,7 +1490,7 @@ func (t *loadCollectionTask) Execute(ctx context.Context) (err error) {
 	if err != nil {
 		return fmt.Errorf("call query coordinator LoadCollection: %s", err)
 	}
-	SendReplicateMessagePack(ctx, t.replicateMsgStream, t.LoadCollectionRequest)
+	// SendReplicateMessagePack(ctx, t.replicateMsgStream, t.LoadCollectionRequest)
 	return nil
 }
 
@@ -1589,7 +1589,7 @@ func (t *releaseCollectionTask) Execute(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	SendReplicateMessagePack(ctx, t.replicateMsgStream, t.ReleaseCollectionRequest)
+	// SendReplicateMessagePack(ctx, t.replicateMsgStream, t.ReleaseCollectionRequest)
 	return nil
 }
 
@@ -1739,7 +1739,7 @@ func (t *loadPartitionsTask) Execute(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	SendReplicateMessagePack(ctx, t.replicateMsgStream, t.LoadPartitionsRequest)
+	// SendReplicateMessagePack(ctx, t.replicateMsgStream, t.LoadPartitionsRequest)
 
 	return nil
 }
@@ -1846,7 +1846,7 @@ func (t *releasePartitionsTask) Execute(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	SendReplicateMessagePack(ctx, t.replicateMsgStream, t.ReleasePartitionsRequest)
+	// SendReplicateMessagePack(ctx, t.replicateMsgStream, t.ReleasePartitionsRequest)
 	return nil
 }
 
