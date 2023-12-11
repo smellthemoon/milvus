@@ -85,7 +85,8 @@ func (pc *pulsarClient) CreateProducer(options mqwrapper.ProducerOptions) (mqwra
 	opts.DisableBatching = true
 	// change the batching max publish delay higher to avoid extra cpu consumption
 	opts.BatchingMaxPublishDelay = 1 * time.Minute
-
+	// to avoid large memory pool
+	opts.BatchingMaxMessages = uint(250)
 	pp, err := pc.client.CreateProducer(opts)
 	if err != nil {
 		metrics.MsgStreamOpCounter.WithLabelValues(metrics.CreateProducerLabel, metrics.FailLabel).Inc()
