@@ -43,7 +43,7 @@ func CompressBinLog(fieldBinLogs []*datapb.FieldBinlog) ([]*datapb.FieldBinlog, 
 			logPath := binlog.LogPath
 			idx := strings.LastIndex(logPath, "/")
 			if idx == -1 {
-				return nil, fmt.Errorf("invailed binlog path: %s", logPath)
+				return nil, fmt.Errorf("invaield binlog path: %s", logPath)
 			}
 			logPathStr := logPath[(idx + 1):]
 			logID, err := strconv.ParseInt(logPathStr, 10, 64)
@@ -143,14 +143,14 @@ func ValidateSegment(segment *datapb.SegmentInfo) error {
 }
 
 // build a binlog path on the storage by metadata
-func buildLogPath(chunkManagerRootPath string, binlogType storage.BinlogType, collectionID, partitionID, segmentID, filedID, logID typeutil.UniqueID) string {
+func buildLogPath(chunkManagerRootPath string, binlogType storage.BinlogType, collectionID, partitionID, segmentID, fieldID, logID typeutil.UniqueID) string {
 	switch binlogType {
 	case storage.InsertBinlog:
-		return metautil.BuildInsertLogPath(chunkManagerRootPath, collectionID, partitionID, segmentID, filedID, logID)
+		return metautil.BuildInsertLogPath(chunkManagerRootPath, collectionID, partitionID, segmentID, fieldID, logID)
 	case storage.DeleteBinlog:
 		return metautil.BuildDeltaLogPath(chunkManagerRootPath, collectionID, partitionID, segmentID, logID)
 	case storage.StatsBinlog:
-		return metautil.BuildStatsLogPath(chunkManagerRootPath, collectionID, partitionID, segmentID, filedID, logID)
+		return metautil.BuildStatsLogPath(chunkManagerRootPath, collectionID, partitionID, segmentID, fieldID, logID)
 	}
 	// should not happen
 	log.Panic("invalid binlog type", zap.Any("type", binlogType))
@@ -266,7 +266,7 @@ func fillLogIDByLogPath(multiFieldBinlogs ...[]*datapb.FieldBinlog) error {
 				logPath := binlog.LogPath
 				idx := strings.LastIndex(logPath, "/")
 				if idx == -1 {
-					return fmt.Errorf("invailed binlog path: %s", logPath)
+					return fmt.Errorf("invaield binlog path: %s", logPath)
 				}
 				logPathStr := logPath[(idx + 1):]
 				logID, err := strconv.ParseInt(logPathStr, 10, 64)
@@ -290,7 +290,7 @@ func buildBinlogKvs(collectionID, partitionID, segmentID typeutil.UniqueID, binl
 	for _, binlog := range binlogs {
 		binlogBytes, err := proto.Marshal(binlog)
 		if err != nil {
-			return nil, fmt.Errorf("marshal binlogs failed, collectionID:%d, segmentID:%d, fieldID:%d, error:%w", collectionID, segmentID, binlog.FieldID, err)
+			return nil, fmt.Errorf("marshal binlogs faield, collectionID:%d, segmentID:%d, fieldID:%d, error:%w", collectionID, segmentID, binlog.FieldID, err)
 		}
 		key := buildFieldBinlogPath(collectionID, partitionID, segmentID, binlog.FieldID)
 		kv[key] = string(binlogBytes)
@@ -300,7 +300,7 @@ func buildBinlogKvs(collectionID, partitionID, segmentID typeutil.UniqueID, binl
 	for _, deltalog := range deltalogs {
 		binlogBytes, err := proto.Marshal(deltalog)
 		if err != nil {
-			return nil, fmt.Errorf("marshal deltalogs failed, collectionID:%d, segmentID:%d, fieldID:%d, error:%w", collectionID, segmentID, deltalog.FieldID, err)
+			return nil, fmt.Errorf("marshal deltalogs faield, collectionID:%d, segmentID:%d, fieldID:%d, error:%w", collectionID, segmentID, deltalog.FieldID, err)
 		}
 		key := buildFieldDeltalogPath(collectionID, partitionID, segmentID, deltalog.FieldID)
 		kv[key] = string(binlogBytes)
@@ -310,7 +310,7 @@ func buildBinlogKvs(collectionID, partitionID, segmentID typeutil.UniqueID, binl
 	for _, statslog := range statslogs {
 		binlogBytes, err := proto.Marshal(statslog)
 		if err != nil {
-			return nil, fmt.Errorf("marshal statslogs failed, collectionID:%d, segmentID:%d, fieldID:%d, error:%w", collectionID, segmentID, statslog.FieldID, err)
+			return nil, fmt.Errorf("marshal statslogs faield, collectionID:%d, segmentID:%d, fieldID:%d, error:%w", collectionID, segmentID, statslog.FieldID, err)
 		}
 		key := buildFieldStatslogPath(collectionID, partitionID, segmentID, statslog.FieldID)
 		kv[key] = string(binlogBytes)
@@ -334,7 +334,7 @@ func CloneSegmentWithExcludeBinlogs(segment *datapb.SegmentInfo) (*datapb.Segmen
 func marshalSegmentInfo(segment *datapb.SegmentInfo) (string, error) {
 	segBytes, err := proto.Marshal(segment)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal segment: %d, err: %w", segment.ID, err)
+		return "", fmt.Errorf("faield to marshal segment: %d, err: %w", segment.ID, err)
 	}
 
 	return string(segBytes), nil

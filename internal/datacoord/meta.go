@@ -133,8 +133,8 @@ func (m *meta) reloadFromKV() error {
 			metrics.FlushedSegmentFileNum.WithLabelValues(metrics.StatFileLabel).Observe(float64(statFileNum))
 
 			deleteFileNum := 0
-			for _, filedBinlog := range segment.GetDeltalogs() {
-				deleteFileNum += len(filedBinlog.GetBinlogs())
+			for _, fieldBinlog := range segment.GetDeltalogs() {
+				deleteFileNum += len(fieldBinlog.GetBinlogs())
 			}
 			metrics.FlushedSegmentFileNum.WithLabelValues(metrics.DeleteFileLabel).Observe(float64(deleteFileNum))
 		}
@@ -297,7 +297,7 @@ func (m *meta) AddSegment(ctx context.Context, segment *SegmentInfo) error {
 	m.Lock()
 	defer m.Unlock()
 	if err := m.catalog.AddSegment(m.ctx, segment.SegmentInfo); err != nil {
-		log.Error("meta update: adding segment failed",
+		log.Error("meta update: adding segment faield",
 			zap.Int64("segmentID", segment.GetID()),
 			zap.Error(err))
 		return err
@@ -315,12 +315,12 @@ func (m *meta) DropSegment(segmentID UniqueID) error {
 	defer m.Unlock()
 	segment := m.segments.GetSegment(segmentID)
 	if segment == nil {
-		log.Warn("meta update: dropping segment failed - segment not found",
+		log.Warn("meta update: dropping segment faield - segment not found",
 			zap.Int64("segmentID", segmentID))
 		return nil
 	}
 	if err := m.catalog.DropSegment(m.ctx, segment.SegmentInfo); err != nil {
-		log.Warn("meta update: dropping segment failed",
+		log.Warn("meta update: dropping segment faield",
 			zap.Int64("segmentID", segmentID),
 			zap.Error(err))
 		return err
@@ -387,7 +387,7 @@ func (m *meta) SetState(segmentID UniqueID, targetState commonpb.SegmentState) e
 		// Update segment state and prepare segment metric update.
 		updateSegStateAndPrepareMetrics(clonedSegment, targetState, metricMutation)
 		if err := m.catalog.AlterSegments(m.ctx, []*datapb.SegmentInfo{clonedSegment.SegmentInfo}); err != nil {
-			log.Warn("meta update: setting segment state - failed to alter segments",
+			log.Warn("meta update: setting segment state - faield to alter segments",
 				zap.Int64("segmentID", segmentID),
 				zap.String("target state", targetState.String()),
 				zap.Error(err))
@@ -419,7 +419,7 @@ func (m *meta) UnsetIsImporting(segmentID UniqueID) error {
 	clonedSegment.IsImporting = false
 	if isSegmentHealthy(clonedSegment) {
 		if err := m.catalog.AlterSegments(m.ctx, []*datapb.SegmentInfo{clonedSegment.SegmentInfo}); err != nil {
-			log.Warn("meta update: unsetting isImport state of segment - failed to unset segment isImporting state",
+			log.Warn("meta update: unsetting isImport state of segment - faield to unset segment isImporting state",
 				zap.Int64("segmentID", segmentID),
 				zap.Error(err))
 			return err
@@ -448,7 +448,7 @@ func (p *updateSegmentPack) Get(segmentID int64) *SegmentInfo {
 
 	segment := p.meta.segments.GetSegment(segmentID)
 	if segment == nil || !isSegmentHealthy(segment) {
-		log.Warn("meta update: get segment failed - segment not found",
+		log.Warn("meta update: get segment faield - segment not found",
 			zap.Int64("segmentID", segmentID),
 			zap.Bool("segment nil", segment == nil),
 			zap.Bool("segment unhealthy", !isSegmentHealthy(segment)))
@@ -507,7 +507,7 @@ func UpdateStatusOperator(segmentID int64, status commonpb.SegmentState) UpdateO
 	return func(modPack *updateSegmentPack) bool {
 		segment := modPack.Get(segmentID)
 		if segment == nil {
-			log.Warn("meta update: update status failed - segment not found",
+			log.Warn("meta update: update status faield - segment not found",
 				zap.Int64("segmentID", segmentID),
 				zap.String("status", status.String()))
 			return false
@@ -525,7 +525,7 @@ func UpdateCompactedOperator(segmentID int64) UpdateOperator {
 	return func(modPack *updateSegmentPack) bool {
 		segment := modPack.Get(segmentID)
 		if segment == nil {
-			log.Warn("meta update: update binlog failed - segment not found",
+			log.Warn("meta update: update binlog faield - segment not found",
 				zap.Int64("segmentID", segmentID))
 			return false
 		}
@@ -539,7 +539,7 @@ func UpdateBinlogsOperator(segmentID int64, binlogs, statslogs, deltalogs []*dat
 	return func(modPack *updateSegmentPack) bool {
 		segment := modPack.Get(segmentID)
 		if segment == nil {
-			log.Warn("meta update: update binlog failed - segment not found",
+			log.Warn("meta update: update binlog faield - segment not found",
 				zap.Int64("segmentID", segmentID))
 			return false
 		}
@@ -579,7 +579,7 @@ func UpdateCheckPointOperator(segmentID int64, importing bool, checkpoints []*da
 	return func(modPack *updateSegmentPack) bool {
 		segment := modPack.Get(segmentID)
 		if segment == nil {
-			log.Warn("meta update: update checkpoint failed - segment not found",
+			log.Warn("meta update: update checkpoint faield - segment not found",
 				zap.Int64("segmentID", segmentID))
 			return false
 		}
@@ -641,7 +641,7 @@ func (m *meta) UpdateSegmentsInfo(operators ...UpdateOperator) error {
 	increments := lo.Values(updatePack.increments)
 
 	if err := m.catalog.AlterSegments(m.ctx, segments, increments...); err != nil {
-		log.Error("meta update: update flush segments info - failed to store flush segment info into Etcd",
+		log.Error("meta update: update flush segments info - faield to store flush segment info into Etcd",
 			zap.Error(err))
 		return err
 	}
@@ -691,7 +691,7 @@ func (m *meta) UpdateDropChannelSegmentInfo(channel string, segments []*SegmentI
 	}
 	err := m.batchSaveDropSegments(channel, modSegments)
 	if err != nil {
-		log.Warn("meta update: update drop channel segment info failed",
+		log.Warn("meta update: update drop channel segment info faield",
 			zap.String("channel", channel),
 			zap.Error(err))
 	} else {
@@ -920,8 +920,8 @@ func (m *meta) AddAllocation(segmentID UniqueID, allocation *Allocation) error {
 	curSegInfo := m.segments.GetSegment(segmentID)
 	if curSegInfo == nil {
 		// TODO: Error handling.
-		log.Error("meta update: add allocation failed - segment not found", zap.Int64("segmentID", segmentID))
-		return errors.New("meta update: add allocation failed - segment not found")
+		log.Error("meta update: add allocation faield - segment not found", zap.Int64("segmentID", segmentID))
+		return errors.New("meta update: add allocation faield - segment not found")
 	}
 	// As we use global segment lastExpire to guarantee data correctness after restart
 	// there is no need to persist allocation to meta store, only update allocation in-memory meta.

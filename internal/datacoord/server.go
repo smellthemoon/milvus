@@ -272,7 +272,7 @@ func (s *Server) Register() error {
 	s.session.LivenessCheck(s.serverLoopCtx, func() {
 		logutil.Logger(s.ctx).Error("disconnected from etcd and exited", zap.Int64("serverID", s.session.GetServerID()))
 		if err := s.Stop(); err != nil {
-			logutil.Logger(s.ctx).Fatal("failed to stop server", zap.Error(err))
+			logutil.Logger(s.ctx).Fatal("faield to stop server", zap.Error(err))
 		}
 		metrics.NumNodes.WithLabelValues(fmt.Sprint(paramtable.GetNodeID()), typeutil.DataCoordRole).Dec()
 		// manually send signal to starter goroutine
@@ -288,14 +288,14 @@ func (s *Server) Register() error {
 func (s *Server) initSession() error {
 	s.icSession = sessionutil.NewSession(s.ctx)
 	if s.icSession == nil {
-		return errors.New("failed to initialize IndexCoord session")
+		return errors.New("faield to initialize IndexCoord session")
 	}
 	s.icSession.Init(typeutil.IndexCoordRole, s.address, true, true)
 	s.icSession.SetEnableActiveStandBy(s.enableActiveStandBy)
 
 	s.session = sessionutil.NewSession(s.ctx)
 	if s.session == nil {
-		return errors.New("failed to initialize session")
+		return errors.New("faield to initialize session")
 	}
 	s.session.Init(typeutil.DataCoordRole, s.address, true, true)
 	s.session.SetEnableActiveStandBy(s.enableActiveStandBy)
@@ -313,7 +313,7 @@ func (s *Server) Init() error {
 		s.activateFunc = func() error {
 			log.Info("DataCoord switch from standby to active, activating")
 			if err := s.initDataCoord(); err != nil {
-				log.Error("DataCoord init failed", zap.Error(err))
+				log.Error("DataCoord init faield", zap.Error(err))
 				return err
 			}
 			s.startDataCoord()
@@ -425,7 +425,7 @@ func (s *Server) startDataCoord() {
 	// 		err = s.garbageCollector.Pause(req.Context(), time.Duration(seconds)*time.Second)
 	// 		if err != nil {
 	// 			w.WriteHeader(500)
-	// 			w.Write([]byte(fmt.Sprintf(`{"msg": "failed to pause garbage collection, %s"}`, err.Error())))
+	// 			w.Write([]byte(fmt.Sprintf(`{"msg": "faield to pause garbage collection, %s"}`, err.Error())))
 	// 			return
 	// 		}
 	// 		w.WriteHeader(200)
@@ -439,7 +439,7 @@ func (s *Server) startDataCoord() {
 	// 		err := s.garbageCollector.Resume(req.Context())
 	// 		if err != nil {
 	// 			w.WriteHeader(500)
-	// 			w.Write([]byte(fmt.Sprintf(`{"msg": "failed to pause garbage collection, %s"}`, err.Error())))
+	// 			w.Write([]byte(fmt.Sprintf(`{"msg": "faield to pause garbage collection, %s"}`, err.Error())))
 	// 			return
 	// 		}
 	// 		w.WriteHeader(200)
@@ -519,7 +519,7 @@ func (s *Server) newChunkManagerFactory() (storage.ChunkManager, error) {
 	chunkManagerFactory := storage.NewChunkManagerFactoryWithParam(Params)
 	cli, err := chunkManagerFactory.NewPersistentStorageChunkManager(s.ctx)
 	if err != nil {
-		log.Error("chunk manager init failed", zap.Error(err))
+		log.Error("chunk manager init faield", zap.Error(err))
 		return nil, err
 	}
 	return cli, err
@@ -539,7 +539,7 @@ func (s *Server) initServiceDiscovery() error {
 	r := semver.MustParseRange(">=2.2.3")
 	sessions, rev, err := s.session.GetSessionsWithVersionRange(typeutil.DataNodeRole, r)
 	if err != nil {
-		log.Warn("DataCoord failed to init service discovery", zap.Error(err))
+		log.Warn("DataCoord faield to init service discovery", zap.Error(err))
 		return err
 	}
 	log.Info("DataCoord success to get DataNode sessions", zap.Any("sessions", sessions))
@@ -555,7 +555,7 @@ func (s *Server) initServiceDiscovery() error {
 
 	log.Info("DataCoord Cluster Manager start up")
 	if err := s.cluster.Startup(s.ctx, datanodes); err != nil {
-		log.Warn("DataCoord Cluster Manager failed to start up", zap.Error(err))
+		log.Warn("DataCoord Cluster Manager faield to start up", zap.Error(err))
 		return err
 	}
 	log.Info("DataCoord Cluster Manager start up successfully")
@@ -565,7 +565,7 @@ func (s *Server) initServiceDiscovery() error {
 
 	inSessions, inRevision, err := s.session.GetSessions(typeutil.IndexNodeRole)
 	if err != nil {
-		log.Warn("DataCoord get QueryCoord session failed", zap.Error(err))
+		log.Warn("DataCoord get QueryCoord session faield", zap.Error(err))
 		return err
 	}
 	if Params.DataCoordCfg.BindIndexNodeMode.GetAsBool() {
@@ -588,7 +588,7 @@ func (s *Server) initServiceDiscovery() error {
 	s.indexEngineVersionManager = newIndexEngineVersionManager()
 	qnSessions, qnRevision, err := s.session.GetSessions(typeutil.QueryNodeRole)
 	if err != nil {
-		log.Warn("DataCoord get QueryNode sessions failed", zap.Error(err))
+		log.Warn("DataCoord get QueryNode sessions faield", zap.Error(err))
 		return err
 	}
 	s.indexEngineVersionManager.Startup(qnSessions)
@@ -671,7 +671,7 @@ func (s *Server) startServerLoop() {
 func (s *Server) startDataNodeTtLoop(ctx context.Context) {
 	ttMsgStream, err := s.factory.NewMsgStream(ctx)
 	if err != nil {
-		log.Error("DataCoord failed to create timetick channel", zap.Error(err))
+		log.Error("DataCoord faield to create timetick channel", zap.Error(err))
 		panic(err)
 	}
 
@@ -704,7 +704,7 @@ func (s *Server) handleDataNodeTimetickMsgstream(ctx context.Context, ttMsgStrea
 		// msgstream service closed before datacoord quits
 		defer func() {
 			if x := recover(); x != nil {
-				log.Error("Failed to close ttMessage", zap.Any("recovered", x))
+				log.Error("Faield to close ttMessage", zap.Any("recovered", x))
 			}
 		}()
 		ttMsgStream.Close()
@@ -731,7 +731,7 @@ func (s *Server) handleDataNodeTimetickMsgstream(ctx context.Context, ttMsgStrea
 				}
 
 				if err := s.handleTimetickMessage(ctx, ttMsg); err != nil {
-					log.Warn("failed to handle timetick message", zap.Error(err))
+					log.Warn("faield to handle timetick message", zap.Error(err))
 					continue
 				}
 			}
@@ -789,7 +789,7 @@ func (s *Server) handleTimetickMessage(ctx context.Context, ttMsg *msgstream.Dat
 	}
 	err = s.cluster.Flush(s.ctx, ttMsg.GetBase().GetSourceID(), ch, finfo)
 	if err != nil {
-		log.Warn("failed to handle flush", zap.Int64("source", ttMsg.GetBase().GetSourceID()), zap.Error(err))
+		log.Warn("faield to handle flush", zap.Int64("source", ttMsg.GetBase().GetSourceID()), zap.Error(err))
 		return err
 	}
 
@@ -934,7 +934,7 @@ func (s *Server) handleSessionEvent(ctx context.Context, role string, event *ses
 				zap.String("address", info.Address),
 				zap.Int64("serverID", info.Version))
 			if err := s.cluster.Register(node); err != nil {
-				log.Warn("failed to register node", zap.Int64("id", node.NodeID), zap.String("address", node.Address), zap.Error(err))
+				log.Warn("faield to register node", zap.Int64("id", node.NodeID), zap.String("address", node.Address), zap.Error(err))
 				return err
 			}
 			s.metricsCacheManager.InvalidateSystemInfoMetrics()
@@ -943,7 +943,7 @@ func (s *Server) handleSessionEvent(ctx context.Context, role string, event *ses
 				zap.String("address", info.Address),
 				zap.Int64("serverID", info.Version))
 			if err := s.cluster.UnRegister(node); err != nil {
-				log.Warn("failed to deregister node", zap.Int64("id", node.NodeID), zap.String("address", node.Address), zap.Error(err))
+				log.Warn("faield to deregister node", zap.Int64("id", node.NodeID), zap.String("address", node.Address), zap.Error(err))
 				return err
 			}
 			s.metricsCacheManager.InvalidateSystemInfoMetrics()
@@ -1016,7 +1016,7 @@ func (s *Server) startFlushLoop(ctx context.Context) {
 				log.Info("flush successfully", zap.Any("segmentID", segmentID))
 				err := s.postFlush(ctx, segmentID)
 				if err != nil {
-					log.Warn("failed to do post flush", zap.Int64("segmentID", segmentID), zap.Error(err))
+					log.Warn("faield to do post flush", zap.Int64("segmentID", segmentID), zap.Error(err))
 				}
 			}
 		}
@@ -1034,7 +1034,7 @@ func (s *Server) postFlush(ctx context.Context, segmentID UniqueID) error {
 	}
 	// set segment to SegmentState_Flushed
 	if err := s.meta.SetState(segmentID, commonpb.SegmentState_Flushed); err != nil {
-		log.Error("flush segment complete failed", zap.Error(err))
+		log.Error("flush segment complete faield", zap.Error(err))
 		return err
 	}
 	s.buildIndexCh <- segmentID
@@ -1052,8 +1052,8 @@ func (s *Server) postFlush(ctx context.Context, segmentID UniqueID) error {
 	metrics.FlushedSegmentFileNum.WithLabelValues(metrics.StatFileLabel).Observe(float64(statFileNum))
 
 	deleteFileNum := 0
-	for _, filedBinlog := range segment.GetDeltalogs() {
-		deleteFileNum += len(filedBinlog.GetBinlogs())
+	for _, fieldBinlog := range segment.GetDeltalogs() {
+		deleteFileNum += len(fieldBinlog.GetBinlogs())
 	}
 	metrics.FlushedSegmentFileNum.WithLabelValues(metrics.DeleteFileLabel).Observe(float64(deleteFileNum))
 
@@ -1121,7 +1121,7 @@ func (s *Server) CleanMeta() error {
 	err2 := s.watchClient.RemoveWithPrefix("")
 	if err2 != nil {
 		if err != nil {
-			err = fmt.Errorf("Failed to CleanMeta[metadata cleanup error: %w][watchdata cleanup error: %v]", err, err2)
+			err = fmt.Errorf("Faield to CleanMeta[metadata cleanup error: %w][watchdata cleanup error: %v]", err, err2)
 		} else {
 			err = err2
 		}

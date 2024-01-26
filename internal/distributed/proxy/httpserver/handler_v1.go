@@ -136,7 +136,7 @@ func (h *HandlersV1) describeCollection(ctx context.Context, c *gin.Context, dbN
 	}
 	primaryField, ok := getPrimaryField(response.Schema)
 	if ok && primaryField.AutoID && !response.Schema.AutoID {
-		log.Warn("primary filed autoID VS schema autoID", zap.String("collectionName", collectionName), zap.Bool("primary Field", primaryField.AutoID), zap.Bool("schema", response.Schema.AutoID))
+		log.Warn("primary field autoID VS schema autoID", zap.String("collectionName", collectionName), zap.Bool("primary Field", primaryField.AutoID), zap.Bool("schema", response.Schema.AutoID))
 		response.Schema.AutoID = EnableAutoID
 	}
 	return response.Schema, nil
@@ -359,7 +359,7 @@ func (h *HandlersV1) getCollectionDetails(c *gin.Context) {
 	coll := response.(*milvuspb.DescribeCollectionResponse)
 	primaryField, ok := getPrimaryField(coll.Schema)
 	if ok && primaryField.AutoID && !coll.Schema.AutoID {
-		log.Warn("primary filed autoID VS schema autoID", zap.String("collectionName", collectionName), zap.Bool("primary Field", primaryField.AutoID), zap.Bool("schema", coll.Schema.AutoID))
+		log.Warn("primary field autoID VS schema autoID", zap.String("collectionName", collectionName), zap.Bool("primary Field", primaryField.AutoID), zap.Bool("schema", coll.Schema.AutoID))
 		coll.Schema.AutoID = EnableAutoID
 	}
 

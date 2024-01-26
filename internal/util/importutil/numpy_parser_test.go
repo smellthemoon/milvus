@@ -458,7 +458,7 @@ func Test_NumpyParserCreateReaders(t *testing.T) {
 		defer closeReaders(readers)
 	})
 
-	t.Run("velidate header failed", func(t *testing.T) {
+	t.Run("velidate header faield", func(t *testing.T) {
 		filePath := TempFilesPath + "FieldBool.npy"
 		err = CreateNumpyFile(filePath, []int32{1, 2, 3, 4, 5})
 		assert.NoError(t, err)
@@ -509,8 +509,8 @@ func Test_NumpyParserReadData(t *testing.T) {
 		assert.Nil(t, fieldData)
 	})
 
-	readEmptyFunc := func(filedName string, data interface{}) {
-		filePath := TempFilesPath + filedName + ".npy"
+	readEmptyFunc := func(fieldName string, data interface{}) {
+		filePath := TempFilesPath + fieldName + ".npy"
 		err = CreateNumpyFile(filePath, data)
 		assert.NoError(t, err)
 
@@ -529,8 +529,8 @@ func Test_NumpyParserReadData(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	readBatchFunc := func(filedName string, data interface{}, dataLen int, getValue func(k int) interface{}) {
-		filePath := TempFilesPath + filedName + ".npy"
+	readBatchFunc := func(fieldName string, data interface{}, dataLen int, getValue func(k int) interface{}) {
+		filePath := TempFilesPath + fieldName + ".npy"
 		err = CreateNumpyFile(filePath, data)
 		assert.NoError(t, err)
 
@@ -557,8 +557,8 @@ func Test_NumpyParserReadData(t *testing.T) {
 		}
 	}
 
-	readErrorFunc := func(filedName string, data interface{}) {
-		filePath := TempFilesPath + filedName + ".npy"
+	readErrorFunc := func(fieldName string, data interface{}) {
+		filePath := TempFilesPath + fieldName + ".npy"
 		err = CreateNumpyFile(filePath, data)
 		assert.NoError(t, err)
 
@@ -626,9 +626,9 @@ func Test_NumpyParserReadData(t *testing.T) {
 		readErrorFunc("FieldDouble", data)
 	})
 
-	specialReadEmptyFunc := func(filedName string, data interface{}) {
+	specialReadEmptyFunc := func(fieldName string, data interface{}) {
 		ctx := context.Background()
-		filePath := TempFilesPath + filedName + ".npy"
+		filePath := TempFilesPath + fieldName + ".npy"
 		content, err := CreateNumpyData(data)
 		assert.NoError(t, err)
 		err = cm.Write(ctx, filePath, content)
@@ -867,7 +867,7 @@ func Test_NumpyParserSplitFieldsData(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("failed to alloc id", func(t *testing.T) {
+	t.Run("faield to alloc id", func(t *testing.T) {
 		ctx := context.Background()
 		parser.rowIDAllocator = newIDAllocator(ctx, t, errors.New("dummy error"))
 		parser.collectionInfo.resetSchema(sampleSchema())
@@ -948,7 +948,7 @@ func Test_NumpyParserCalcRowCountPerBlock(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Greater(t, rowCount, int64(0))
 
-	// failed to estimate row size
+	// faield to estimate row size
 	schema := &schemapb.CollectionSchema{
 		Name: "schema",
 		Fields: []*schemapb.FieldSchema{
@@ -1042,7 +1042,7 @@ func Test_NumpyParserParse(t *testing.T) {
 	parser := createNumpyParser(t)
 	parser.blockSize = 400
 
-	t.Run("validate file name failed", func(t *testing.T) {
+	t.Run("validate file name faield", func(t *testing.T) {
 		files := []string{"dummy.npy"}
 		err = parser.Parse(files)
 		assert.Error(t, err)

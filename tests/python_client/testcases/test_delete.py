@@ -135,7 +135,7 @@ class TestDeleteParams(TestcaseBase):
         # init collection with tmp_nb default data
         collection_w = self.init_collection_general(prefix, nb=tmp_nb, insert_data=True)[0]
         error = {ct.err_code: 1,
-                 ct.err_msg: f"failed to create expr plan, expr = {expr}"}
+                 ct.err_msg: f"faield to create expr plan, expr = {expr}"}
         collection_w.delete(expr, check_task=CheckTasks.err_res, check_items=error)
 
     @pytest.mark.tags(CaseLabel.L2)
@@ -195,7 +195,7 @@ class TestDeleteParams(TestcaseBase):
                                                     is_all_data_type=True, is_index=True)[0]
         expr = f"{ct.default_float_vec_field_name} in [[0.1]]"
         error = {ct.err_code: 1,
-                 ct.err_msg: f"failed to create expr plan, expr = {expr}"}
+                 ct.err_msg: f"faield to create expr plan, expr = {expr}"}
 
         collection_w.delete(expr, check_task=CheckTasks.err_res, check_items=error)
 
@@ -240,7 +240,7 @@ class TestDeleteParams(TestcaseBase):
         expr = f'{ct.default_int64_field_name} in {[0.0, 1.0]}'
 
         # Bad exception message
-        error = {ct.err_code: 1, ct.err_msg: "failed to create expr plan,"}
+        error = {ct.err_code: 1, ct.err_msg: "faield to create expr plan,"}
         collection_w.delete(expr=expr, check_task=CheckTasks.err_res, check_items=error)
 
     @pytest.mark.tags(CaseLabel.L2)
@@ -255,7 +255,7 @@ class TestDeleteParams(TestcaseBase):
         expr = f'{ct.default_int64_field_name} in {[0, 1.0]}'
 
         # Bad exception message
-        error = {ct.err_code: 1, ct.err_msg: "failed to create expr plan"}
+        error = {ct.err_code: 1, ct.err_msg: "faield to create expr plan"}
         collection_w.delete(expr=expr, check_task=CheckTasks.err_res, check_items=error)
 
     @pytest.mark.tags(CaseLabel.L0)
@@ -629,7 +629,7 @@ class TestDeleteOperation(TestcaseBase):
 
         # raise exception
         error = {ct.err_code: 200,
-                 ct.err_msg: f"Failed to get partition id: partition={ct.default_tag}: partition not found"}
+                 ct.err_msg: f"Faield to get partition id: partition={ct.default_tag}: partition not found"}
         collection_w.delete(tmp_expr, partition_name=ct.default_tag,
                             check_task=CheckTasks.err_res, check_items=error)
 
@@ -1836,7 +1836,7 @@ class TestDeleteString(TestcaseBase):
             self.init_collection_general(prefix, nb=tmp_nb, insert_data=True, primary_field=ct.default_string_field_name)[0]
         collection_w.load()
         error = {ct.err_code: 0,
-                 ct.err_msg: f"failed to create expr plan, expr = {default_invalid_string_exp}"}
+                 ct.err_msg: f"faield to create expr plan, expr = {default_invalid_string_exp}"}
         collection_w.delete(expr=default_invalid_string_exp,
                             check_task=CheckTasks.err_res, check_items=error)
 
@@ -2022,7 +2022,7 @@ class TestDeleteComplexExpr(TestcaseBase):
         expected: delete successfully
         """
         if field_name == "NewStr" and enable_dynamic_field is False:
-            pytest.skip("only support when enable_dynamic_filed == True")
+            pytest.skip("only support when enable_dynamic_field == True")
         # init collection with nb default data
         nb = 1000
         collection_w, _vectors, _, insert_ids = \
@@ -2095,7 +2095,7 @@ class TestDeleteComplexExpr(TestcaseBase):
         expected: delete successfully
         """
         if field_name == "list" and enable_dynamic_field is False:
-            pytest.skip("only support when enable_dynamic_filed == True")
+            pytest.skip("only support when enable_dynamic_field == True")
         # init collection with nb default data
         collection_w = self.init_collection_general(prefix, False, enable_dynamic_field=enable_dynamic_field)[0]
 
@@ -2135,7 +2135,7 @@ class TestDeleteComplexExpr(TestcaseBase):
         expected: delete successfully
         """
         if field_name == "list" and enable_dynamic_field is False:
-            pytest.skip("only support when enable_dynamic_filed == True")
+            pytest.skip("only support when enable_dynamic_field == True")
         # init collection with nb default data
         collection_w = self.init_collection_general(prefix, False, enable_dynamic_field=enable_dynamic_field)[0]
 
@@ -2199,7 +2199,7 @@ class TestDeleteComplexExpr(TestcaseBase):
         collection_w.load()
 
         # delete with expressions
-        error = {ct.err_code: 1, ct.err_msg: f"failed to create expr plan, expr = {expressions}"}
+        error = {ct.err_code: 1, ct.err_msg: f"faield to create expr plan, expr = {expressions}"}
         collection_w.delete(expressions, check_task=CheckTasks.err_res, check_items=error)
 
     @pytest.mark.tags(CaseLabel.L2)
@@ -2288,7 +2288,7 @@ class TestDeleteComplexExpr(TestcaseBase):
         expected: delete successfully
         """
         if "NewStr" in expression and enable_dynamic_field is False:
-            pytest.skip("only support when enable_dynamic_filed == True")
+            pytest.skip("only support when enable_dynamic_field == True")
         # init collection with nb default data
         nb = 1000
         collection_w, _vectors, _, insert_ids = \

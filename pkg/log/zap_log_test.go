@@ -62,12 +62,12 @@ func TestLog(t *testing.T) {
 		_ = sugar.Sync()
 	}()
 
-	sugar.Infow("failed to fetch URL",
+	sugar.Infow("faield to fetch URL",
 		"url", "http://example.com",
 		"attempt", 3,
 		"backoff", time.Second,
 	)
-	sugar.Infof(`failed to "fetch" [URL]: %s`, "http://example.com")
+	sugar.Infof(`faield to "fetch" [URL]: %s`, "http://example.com")
 	sugar.Debugw("Slow query",
 		"sql", `SELECT * FROM TABLE
 	WHERE ID="abc"`,
@@ -83,8 +83,8 @@ func TestLog(t *testing.T) {
 
 	logger.With(zap.String("connID", "1"), zap.String("traceID", "dse1121")).Info("new connection")
 	logger.Info("Testing typs",
-		zap.String("filed1", "noquote"),
-		zap.String("filed2", "in quote"),
+		zap.String("field1", "noquote"),
+		zap.String("field2", "in quote"),
 		zap.Strings("urls", []string{"http://mock1.com:2347", "http://mock2.com:2432"}),
 		zap.Strings("urls-peer", []string{"t1", "t2 fine"}),
 		zap.Uint64s("store ids", []uint64{1, 4, 5}),
@@ -113,15 +113,15 @@ func TestLog(t *testing.T) {
 		zap.Duration("duration", 10*time.Second),
 	)
 	ts.assertMessages(
-		`[INFO] [log/zap_log_test.go:65] ["failed to fetch URL"] [url=http://example.com] [attempt=3] [backoff=1s]`,
-		`[INFO] [log/zap_log_test.go:70] ["failed to \"fetch\" [URL]: http://example.com"]`,
+		`[INFO] [log/zap_log_test.go:65] ["faield to fetch URL"] [url=http://example.com] [attempt=3] [backoff=1s]`,
+		`[INFO] [log/zap_log_test.go:70] ["faield to \"fetch\" [URL]: http://example.com"]`,
 		`[DEBUG] [log/zap_log_test.go:71] ["Slow query"] [sql="SELECT * FROM TABLE\n\tWHERE ID=\"abc\""] [duration=1.3s] ["process keys"=1500]`,
 		`[INFO] [log/zap_log_test.go:77] [Welcome]`,
 		`[INFO] [log/zap_log_test.go:78] [欢迎]`,
 		`[WARN] [log/zap_log_test.go:79] [Type] [Counter=NaN] [Score=+Inf]`,
 		`[INFO] [log/zap_log_test.go:84] ["new connection"] [connID=1] [traceID=dse1121]`,
-		`[INFO] [log/zap_log_test.go:85] ["Testing typs"] [filed1=noquote] `+
-			`[filed2="in quote"] [urls="[http://mock1.com:2347,http://mock2.com:2432]"] `+
+		`[INFO] [log/zap_log_test.go:85] ["Testing typs"] [field1=noquote] `+
+			`[field2="in quote"] [urls="[http://mock1.com:2347,http://mock2.com:2432]"] `+
 			`[urls-peer="[t1,\"t2 fine\"]"] ["store ids"="[1,4,5]"] [object="{username=user1}"] `+
 			`[object2="{username=\"user 2\"}"] [binary="YWIxMjM="] ["is processed"=true] `+
 			`[bytestring=noquote] [bytestring="in quote"] [int8=1] [ptr=10] [reflect="[1,2]"] [stringer=127.0.0.1] `+
@@ -185,13 +185,13 @@ func TestLogJSON(t *testing.T) {
 	sugar := logger.Sugar()
 	defer sugar.Sync()
 
-	sugar.Infow("failed to fetch URL",
+	sugar.Infow("faield to fetch URL",
 		"url", "http://example.com",
 		"attempt", 3,
 		"backoff", time.Second,
 	)
 	logger.With(zap.String("connID", "1"), zap.String("traceID", "dse1121")).Info("new connection")
-	ts.assertMessages("{\"level\":\"INFO\",\"caller\":\"log/zap_log_test.go:188\",\"message\":\"failed to fetch URL\",\"url\":\"http://example.com\",\"attempt\":3,\"backoff\":\"1s\"}",
+	ts.assertMessages("{\"level\":\"INFO\",\"caller\":\"log/zap_log_test.go:188\",\"message\":\"faield to fetch URL\",\"url\":\"http://example.com\",\"attempt\":3,\"backoff\":\"1s\"}",
 		"{\"level\":\"INFO\",\"caller\":\"log/zap_log_test.go:193\",\"message\":\"new connection\",\"connID\":\"1\",\"traceID\":\"dse1121\"}")
 }
 
@@ -271,7 +271,7 @@ func TestErrorLog(t *testing.T) {
 type testLogSpy struct {
 	testing.TB
 
-	failed   bool
+	faield   bool
 	Messages []string
 }
 
@@ -280,11 +280,11 @@ func newTestLogSpy(t testing.TB) *testLogSpy {
 }
 
 func (t *testLogSpy) Fail() {
-	t.failed = true
+	t.faield = true
 }
 
-func (t *testLogSpy) Failed() bool {
-	return t.failed
+func (t *testLogSpy) Faield() bool {
+	return t.faield
 }
 
 func (t *testLogSpy) FailNow() {
