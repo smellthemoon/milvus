@@ -146,9 +146,11 @@ PhyCompareFilterExpr::ExecCompareExprDispatcher(OpType op) {
         return nullptr;
     }
 
-    auto res_vec =
-        std::make_shared<ColumnVector>(TargetBitmap(real_batch_size));
+    auto res_vec = std::make_shared<ColumnVector>(
+        TargetBitmap(real_batch_size), TargetBitmap(real_batch_size));
     TargetBitmapView res(res_vec->GetRawData(), real_batch_size);
+    TargetBitmapView valid_res(res_vec->GetValidRawData(), real_batch_size);
+    valid_res.set();
 
     auto left_data_barrier = segment_->num_chunk_data(expr_->left_field_id_);
     auto right_data_barrier = segment_->num_chunk_data(expr_->right_field_id_);
@@ -173,6 +175,7 @@ PhyCompareFilterExpr::ExecCompareExprDispatcher(OpType op) {
              ++i) {
             if (!left(i).has_value() || !right(i).has_value()) {
                 res[processed_rows] = false;
+                valid_res[processed_rows] = false;
             } else {
                 res[processed_rows] = boost::apply_visitor(
                     milvus::query::Relational<decltype(op)>{},
@@ -294,9 +297,11 @@ PhyCompareFilterExpr::ExecCompareRightType() {
         return nullptr;
     }
 
-    auto res_vec =
-        std::make_shared<ColumnVector>(TargetBitmap(real_batch_size));
+    auto res_vec = std::make_shared<ColumnVector>(
+        TargetBitmap(real_batch_size), TargetBitmap(real_batch_size));
     TargetBitmapView res(res_vec->GetRawData(), real_batch_size);
+    TargetBitmapView valid_res(res_vec->GetValidRawData(), real_batch_size);
+    valid_res.set();
 
     auto expr_type = expr_->op_type_;
     auto execute_sub_batch = [expr_type](const T* left,
@@ -343,7 +348,7 @@ PhyCompareFilterExpr::ExecCompareRightType() {
         }
     };
     int64_t processed_size =
-        ProcessBothDataChunks<T, U>(execute_sub_batch, res);
+        ProcessBothDataChunks<T, U>(execute_sub_batch, res, valid_res);
     AssertInfo(processed_size == real_batch_size,
                "internal error: expr processed rows {} not equal "
                "expect batch size {}",

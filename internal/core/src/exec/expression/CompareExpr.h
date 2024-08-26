@@ -163,7 +163,10 @@ class PhyCompareFilterExpr : public Expr {
 
     template <typename T, typename U, typename FUNC, typename... ValTypes>
     int64_t
-    ProcessBothDataChunks(FUNC func, TargetBitmapView res, ValTypes... values) {
+    ProcessBothDataChunks(FUNC func,
+                          TargetBitmapView res,
+                          TargetBitmapView valid_res,
+                          ValTypes... values) {
         int64_t processed_size = 0;
 
         for (size_t i = current_chunk_id_; i < num_chunk_; i++) {
@@ -192,10 +195,12 @@ class PhyCompareFilterExpr : public Expr {
             for (int i = 0; i < size; ++i) {
                 if (left_valid_data && !left_valid_data[i + data_pos]) {
                     res[processed_size + i] = false;
+                    valid_res[processed_size + i] = false;
                     continue;
                 }
                 if (right_valid_data && !right_valid_data[i + data_pos]) {
                     res[processed_size + i] = false;
+                    valid_res[processed_size + i] = false;
                 }
             }
             processed_size += size;
