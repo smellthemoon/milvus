@@ -706,6 +706,7 @@ func (s *LocalSegment) Insert(ctx context.Context, rowIDs []int64, timestamps []
 		return err
 	}
 
+	log.Info("lxg test blob", zap.Any("record", record))
 	insertRecordBlob, err := proto.Marshal(record)
 	if err != nil {
 		return fmt.Errorf("failed to marshal insert record: %s", err)

@@ -453,6 +453,8 @@ SegmentSealedImpl::LoadFieldData(FieldId field_id, FieldDataInfo& data) {
 
         {
             std::unique_lock lck(mutex_);
+            std::cout << "lxg sealed id:" << field_id.get()
+                      << "  column:" << column->IsNullable() << std::endl;
             fields_.emplace(field_id, column);
         }
 
@@ -1453,7 +1455,9 @@ SegmentSealedImpl::get_raw_data(FieldId field_id,
     // to make sure it won't get released if segment released
     auto column = fields_.at(field_id);
     auto ret = fill_with_empty(field_id, count);
-    if (column->IsNullable()) {
+    std::cout << "lxg seal column nullable" << column->IsNullable()
+              << " id:" << field_meta.get_id().get() << std::endl;
+    if (field_meta.is_nullable()) {
         auto dst = ret->mutable_valid_data()->mutable_data();
         for (int64_t i = 0; i < count; ++i) {
             auto offset = seg_offsets[i];
@@ -1666,7 +1670,7 @@ SegmentSealedImpl::bulk_subscript(
 
     auto column = fields_.at(field_id);
     auto ret = fill_with_empty(field_id, count);
-    if (column->IsNullable()) {
+    if (field_meta.is_nullable()) {
         auto dst = ret->mutable_valid_data()->mutable_data();
         for (int64_t i = 0; i < count; ++i) {
             auto offset = seg_offsets[i];

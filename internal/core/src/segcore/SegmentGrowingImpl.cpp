@@ -511,9 +511,14 @@ SegmentGrowingImpl::bulk_subscript(FieldId field_id,
     AssertInfo(!field_meta.is_vector(),
                "Scalar field meta type is vector type");
     auto result = CreateScalarDataArray(count, field_meta);
+    std::cout << "lxg bulk insert growing field_meta nullable:  "
+              << field_meta.is_nullable() << "   id"
+              << field_meta.get_id().get() << std::endl;
     if (field_meta.is_nullable()) {
         auto valid_data_ptr = insert_record_.get_valid_data(field_id);
         auto res = result->mutable_valid_data()->mutable_data();
+        std::cout << "lxg valid length:" << valid_data_ptr->length()
+                  << "   count:" << count << std::endl;
         for (int64_t i = 0; i < count; ++i) {
             auto offset = seg_offsets[i];
             res[i] = valid_data_ptr->is_valid(offset);

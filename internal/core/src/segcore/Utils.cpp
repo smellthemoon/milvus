@@ -604,6 +604,8 @@ MergeDataArray(std::vector<MergeBase>& merge_bases,
         if (nullable) {
             auto data = src_field_data->valid_data().data();
             auto obj = data_array->mutable_valid_data();
+            std::cout << "lxg set data MergeDataArray src_offset  "
+                      << src_offset << std::endl;
             *(obj->Add()) = data[src_offset];
         }
 

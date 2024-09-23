@@ -311,9 +311,13 @@ class ThreadSafeValidData {
                  const FieldMeta& field_meta) {
         std::unique_lock<std::shared_mutex> lck(mutex_);
         if (field_meta.is_nullable()) {
+            std::cout << "lxg set data array field field meta nulable "
+                      << "id:" << field_meta.get_id().get() << std::endl;
             if (length_ + num_rows > data_.size()) {
                 data_.resize(length_ + num_rows);
             }
+            std::cout << "lxg set data array field length  " << length_
+                      << std::endl;
             auto src = data->valid_data().data();
             for (size_t i = 0; i < num_rows; i++) {
                 data_[length_ + i] = src[i];
@@ -327,6 +331,11 @@ class ThreadSafeValidData {
         std::shared_lock<std::shared_mutex> lck(mutex_);
         Assert(offset < length_);
         return data_[offset];
+    }
+
+    size_t
+    length() {
+        return length_;
     }
 
     bool*
