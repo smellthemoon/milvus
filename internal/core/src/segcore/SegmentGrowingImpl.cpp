@@ -441,13 +441,18 @@ SegmentGrowingImpl::bulk_subscript(
     Assert(!dynamic_field_names.empty());
     auto& field_meta = schema_->operator[](field_id);
     auto vec_ptr = insert_record_.get_data_base(field_id);
+    std::cout << "lxg debug bulk subsript,nullable:" << field_meta.is_nullable()
+              <<"  id:"<<field_meta.get_id().get()<< std::endl;
     auto result = CreateScalarDataArray(count, field_meta);
     if (field_meta.is_nullable()) {
         auto valid_data_ptr = insert_record_.get_valid_data(field_id);
         auto res = result->mutable_valid_data()->mutable_data();
         for (int64_t i = 0; i < count; ++i) {
-            auto offset = seg_offsets[i];
-            res[i] = valid_data_ptr->is_valid(offset);
+             auto offset = seg_offsets[i];
+             std::cout << " lxg index i:" << i
+                       << "  is_valid:" << valid_data_ptr->is_valid(offset)
+                       << std::endl;
+             res[i] = valid_data_ptr->is_valid(offset);
         }
     }
     auto vec = dynamic_cast<const ConcurrentVector<Json>*>(vec_ptr);

@@ -875,8 +875,12 @@ PhyUnaryRangeFilterExpr::ExecRangeVisitorImplForData() {
         // there is a batch operation in BinaryRangeElementFunc,
         // so not divide data again for the reason that it may reduce performance if the null distribution is scattered
         // but to mask res with valid_data after the batch operation.
+        std::cout << "lxg test" << std::endl;
         if (valid_data != nullptr) {
+            std::cout<<"lxg has valid data"<<std::endl;
             for (int i = 0; i < size; i++) {
+                std::cout << "lxg test valid data " <<i<<"  valid:"<< valid_data[i]
+                          << std::endl;
                 if (!valid_data[i]) {
                     res[i] = valid_res[i] = false;
                 }
