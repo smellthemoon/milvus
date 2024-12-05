@@ -72,6 +72,9 @@ type DataNodeManager interface {
 	CheckHealth(ctx context.Context) error
 	QuerySlot(nodeID int64) (*datapb.QuerySlotResponse, error)
 	DropCompactionPlan(nodeID int64, req *datapb.DropCompactionPlanRequest) error
+	AddField(nodeID int64, in *datapb.AddFieldRequest) error
+	QueryAddField(nodeID int64, in *datapb.QueryAddFieldRequest) (*datapb.QueryAddFieldResponse, error)
+	DropAddField(nodeID int64, in *datapb.DropAddFieldRequest) error
 	Close()
 }
 
@@ -411,6 +414,31 @@ func (c *DataNodeManagerImpl) CheckChannelOperationProgress(ctx context.Context,
 	}
 
 	return resp, nil
+}
+
+func (c *DataNodeManagerImpl) AddField(nodeID int64, in *datapb.AddFieldRequest) error {
+	return nil
+}
+
+func (c *DataNodeManagerImpl) QueryAddField(nodeID int64, in *datapb.QueryAddFieldRequest) (*datapb.QueryAddFieldResponse, error) {
+	return nil, nil
+}
+
+func (c *DataNodeManagerImpl) DropAddField(nodeID int64, in *datapb.DropAddFieldRequest) error {
+	log := log.With(
+		zap.Int64("nodeID", nodeID),
+		zap.Int64("jobID", in.GetJobID()),
+		zap.Int64("taskID", in.GetTaskID()),
+	)
+	ctx, cancel := context.WithTimeout(context.Background(), importTaskTimeout)
+	defer cancel()
+	cli, err := c.getClient(ctx, nodeID)
+	if err != nil {
+		log.Info("failed to get client", zap.Error(err))
+		return err
+	}
+	status, err := cli.DropAddField(ctx, in)
+	return merr.CheckRPCCall(status, err)
 }
 
 func (c *DataNodeManagerImpl) PreImport(nodeID int64, in *datapb.PreImportRequest) error {

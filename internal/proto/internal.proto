@@ -314,6 +314,35 @@ enum ImportJobState {
   Stats = 7;
 }
 
+enum SchemaChangeState {
+    none = 0;
+    pending = 1;
+    progressing =2;
+    failed = 3;
+    completed = 4;
+}
+
+enum SchemaChangeType {
+    addField = 0;
+    deleteField = 1;
+}
+
+message AddFieldRequestInternal {
+  int64 dbID = 1;
+  int64 collectionID = 2;
+  string collection_name = 3;
+  repeated int64 partitionIDs = 4;
+  repeated string channel_names = 5;
+  repeated schema.FieldSchema schema = 6;
+  repeated common.KeyValuePair options = 7;
+}
+
+message AddFieldResponse {
+  common.Status status = 1;
+  string jobID = 2;
+}
+
+
 message ImportFile {
   int64 id = 1;
   // A singular row-based file or multiple column-based files.

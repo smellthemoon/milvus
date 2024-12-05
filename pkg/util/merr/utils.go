@@ -1220,3 +1220,11 @@ func WrapErrDuplicatedCompactionTask(msg ...string) error {
 	}
 	return err
 }
+
+func WrapErrOperationNotSupported(msg ...string) error {
+	err := error(ErrOperationNotSupported)
+	if len(msg) > 0 {
+		err = errors.Wrap(err, strings.Join(msg, "->"))
+	}
+	return err
+}

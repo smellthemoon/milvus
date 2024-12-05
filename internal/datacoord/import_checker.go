@@ -373,6 +373,7 @@ func (c *importChecker) checkIndexBuildingJob(job ImportJob) {
 		}
 		return segment.GetIsImporting()
 	})
+	// todo: lxg get channnel for add field req
 	channels, err := c.meta.GetSegmentsChannels(isImportingSegments)
 	if err != nil {
 		log.Warn("get segments channels failed", zap.Error(err))

@@ -49,6 +49,9 @@ type Cluster interface {
 	DropImport(nodeID int64, in *datapb.DropImportRequest) error
 	QuerySlots() map[int64]int64
 	GetSessions() []*session.Session
+	AddField(nodeID int64, in *datapb.AddFieldRequest) error
+	QueryAddField(nodeID int64, in *datapb.QueryAddFieldRequest) (*datapb.QueryAddFieldResponse, error)
+	DropAddField(nodeID int64, in *datapb.DropAddFieldRequest) error
 	Close()
 }
 
@@ -158,6 +161,18 @@ func (c *ClusterImpl) FlushChannels(ctx context.Context, nodeID int64, flushTs T
 	}
 
 	return c.sessionManager.FlushChannels(ctx, nodeID, req)
+}
+
+func (c *ClusterImpl) AddField(nodeID int64, in *datapb.AddFieldRequest) error {
+	return c.sessionManager.AddField(nodeID, in)
+}
+
+func (c *ClusterImpl) QueryAddField(nodeID int64, in *datapb.QueryAddFieldRequest) (*datapb.QueryAddFieldResponse, error) {
+	return c.sessionManager.QueryAddField(nodeID, in)
+}
+
+func (c *ClusterImpl) DropAddField(nodeID int64, in *datapb.DropAddFieldRequest) error {
+	return c.sessionManager.DropAddField(nodeID, in)
 }
 
 func (c *ClusterImpl) PreImport(nodeID int64, in *datapb.PreImportRequest) error {

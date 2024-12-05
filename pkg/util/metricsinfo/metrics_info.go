@@ -378,6 +378,17 @@ type ImportTask struct {
 	CompleteTime string `json:"complete_time,omitempty"`
 }
 
+type AddFieldTask struct {
+	JobID        int64  `json:"job_id,omitempty,string"`
+	TaskID       int64  `json:"task_id,omitempty,string"`
+	CollectionID int64  `json:"collection_id,omitempty,string"`
+	NodeID       int64  `json:"node_id,omitempty,string"`
+	State        string `json:"state,omitempty"`
+	TaskType     string `json:"task_type,omitempty"`
+	CreatedTime  string `json:"created_time,omitempty"`
+	CompleteTime string `json:"complete_time,omitempty"`
+}
+
 type CompactionTask struct {
 	PlanID         int64    `json:"plan_id,omitempty"`
 	CollectionID   int64    `json:"collection_id,omitempty"`

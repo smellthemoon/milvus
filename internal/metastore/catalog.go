@@ -158,6 +158,13 @@ type DataCoordCatalog interface {
 	ListImportTasks(ctx context.Context) ([]*datapb.ImportTaskV2, error)
 	DropImportTask(ctx context.Context, taskID int64) error
 
+	SaveAddFieldsJob(ctx context.Context, job *datapb.AddFieldsJob) error
+	ListAddFieldsJobs(ctx context.Context) ([]*datapb.AddFieldsJob, error)
+	DropAddFieldsJob(ctx context.Context, jobID int64) error
+	SaveAddFieldsTask(ctx context.Context, task *datapb.AddFieldsTask) error
+	ListAddFieldsTasks(ctx context.Context) ([]*datapb.AddFieldsTask, error)
+	DropAddFieldsTask(ctx context.Context, taskID int64) error
+
 	GcConfirm(ctx context.Context, collectionID, partitionID typeutil.UniqueID) bool
 
 	ListCompactionTask(ctx context.Context) ([]*datapb.CompactionTask, error)

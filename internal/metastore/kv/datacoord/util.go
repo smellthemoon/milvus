@@ -160,6 +160,7 @@ func buildBinlogKvs(collectionID, partitionID, segmentID typeutil.UniqueID, binl
 		if err := checkLogID(binlog); err != nil {
 			return nil, err
 		}
+		// lxg: marshal binlog here,build key
 		binlogBytes, err := proto.Marshal(binlog)
 		if err != nil {
 			return nil, fmt.Errorf("marshal binlogs failed, collectionID:%d, segmentID:%d, fieldID:%d, error:%w", collectionID, segmentID, binlog.FieldID, err)
@@ -351,4 +352,12 @@ func buildAnalyzeTaskKey(taskID int64) string {
 
 func buildStatsTaskKey(taskID int64) string {
 	return fmt.Sprintf("%s/%d", StatsTaskPrefix, taskID)
+}
+
+func buildAddFieldsJobKey(jobID int64) string {
+	return fmt.Sprintf("%s/%d", AddFieldsJobPrefix, jobID)
+}
+
+func buildAddFieldsTaskKey(taskID int64) string {
+	return fmt.Sprintf("%s/%d", AddFieldsTaskPrefix, taskID)
 }

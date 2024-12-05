@@ -164,6 +164,40 @@ func (s *storageV1Serializer) EncodeBuffer(ctx context.Context, pack *SyncPack) 
 	return task, nil
 }
 
+func (s *storageV1Serializer) EncodeFieldBuffer(ctx context.Context, pack *SyncPack) (Task, error) {
+	task := NewSyncTask()
+	tr := timerecord.NewTimeRecorder("storage_serializer")
+
+	log := log.Ctx(ctx).With(
+		zap.Int64("segmentID", pack.segmentID),
+		zap.Int64("collectionID", pack.collectionID),
+		zap.String("channel", pack.channelName),
+	)
+
+	if len(pack.insertData) > 0 {
+		memSize := make(map[int64]int64)
+		for _, chunk := range pack.insertData {
+			for fieldID, fieldData := range chunk.Data {
+				memSize[fieldID] += int64(fieldData.GetMemorySize())
+			}
+		}
+		task.binlogMemsize = memSize
+		// no need to hash data here, so the length of insert data in pack is always 1
+		binlogBlobs, err := s.serializeFieldBinlog(ctx, pack)
+		if err != nil {
+			log.Warn("failed to serialize binlog", zap.Error(err))
+			return nil, err
+		}
+		task.binlogBlobs = binlogBlobs
+	}
+
+	s.setTaskMeta(task, pack)
+	task.WithAllocator(s.allocator)
+
+	metrics.DataNodeEncodeBufferLatency.WithLabelValues(fmt.Sprint(paramtable.GetNodeID()), pack.level.String()).Observe(float64(tr.RecordSpan().Milliseconds()))
+	return task, nil
+}
+
 func (s *storageV1Serializer) setTaskMeta(task *SyncTask, pack *SyncPack) {
 	task.WithCollectionID(pack.collectionID).
 		WithPartitionID(pack.partitionID).
@@ -184,6 +218,26 @@ func (s *storageV1Serializer) setTaskMeta(task *SyncTask, pack *SyncPack) {
 func (s *storageV1Serializer) serializeBinlog(ctx context.Context, pack *SyncPack) (map[int64]*storage.Blob, error) {
 	log := log.Ctx(ctx)
 	blobs, err := s.inCodec.Serialize(pack.partitionID, pack.segmentID, pack.insertData...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[int64]*storage.Blob)
+	for _, blob := range blobs {
+		fieldID, err := strconv.ParseInt(blob.GetKey(), 10, 64)
+		if err != nil {
+			log.Error("serialize buffer failed ... cannot parse string to fieldID ..", zap.Error(err))
+			return nil, err
+		}
+
+		result[fieldID] = blob
+	}
+	return result, nil
+}
+
+func (s *storageV1Serializer) serializeFieldBinlog(ctx context.Context, pack *SyncPack) (map[int64]*storage.Blob, error) {
+	log := log.Ctx(ctx)
+	blobs, err := s.inCodec.EncodeFieldBuffer(pack.partitionID, pack.segmentID, pack.insertData[0], pack.tsFrom)
 	if err != nil {
 		return nil, err
 	}

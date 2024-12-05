@@ -103,6 +103,9 @@ service DataCoord {
   rpc ImportV2(internal.ImportRequestInternal) returns(internal.ImportResponse){}
   rpc GetImportProgress(internal.GetImportProgressRequest) returns(internal.GetImportProgressResponse){}
   rpc ListImports(internal.ListImportsRequestInternal) returns(internal.ListImportsResponse){}
+
+  // schema change
+  rpc AddField(internal.AddFieldRequestInternal)returns(internal.AddFieldResponse){}
 }
 
 service DataNode {
@@ -137,6 +140,10 @@ service DataNode {
   rpc QuerySlot(QuerySlotRequest) returns(QuerySlotResponse) {}
 
   rpc DropCompactionPlan(DropCompactionPlanRequest) returns(common.Status) {}
+
+  rpc AddField(AddFieldRequest) returns(common.Status) {}
+  rpc QueryAddField(QueryAddFieldRequest) returns(QueryAddFieldResponse) {}
+  rpc DropAddField(DropAddFieldRequest) returns(common.Status) {}
 }
 
 message FlushRequest {
@@ -361,6 +368,8 @@ message SegmentInfo {
   // This field is used to indicate that some intermediate state segments should not be loaded.
   // For example, segments that have been clustered but haven't undergone stats yet.
   bool is_invisible = 28;
+
+  bool is_adding_field = 29;
 }
 
 message SegmentStartPosition {
@@ -807,6 +816,21 @@ message ImportRequest {
   repeated ImportRequestSegment request_segments = 12;
 }
 
+message AddFieldRequest {
+  string clusterID = 1;
+  int64 jobID = 2;
+  int64 taskID = 3;
+  int64 collectionID = 4;
+  repeated int64 partitionIDs = 5;
+  repeated string vchannels = 6;
+  repeated schema.FieldSchema fieldSchema = 7;
+  repeated int64 segmentIDs = 8;
+  repeated int64 numRows = 9;
+  repeated common.KeyValuePair options = 10;
+  uint64 ts = 11;
+  IDRange ID_range = 12;
+}
+
 message QueryPreImportRequest {
   string clusterID = 1;
   int64 jobID = 2;
@@ -835,6 +859,23 @@ message QueryPreImportResponse {
   repeated ImportFileStats file_stats = 6;
 }
 
+message QueryAddFieldRequest {
+  string clusterID = 1;
+  int64 jobID = 2;
+  int64 taskID = 3;
+  bool querySlot = 4;
+}
+
+message QueryAddFieldResponse {
+  common.Status status = 1;
+  int64 taskID = 2;
+  internal.SchemaChangeState state = 3;
+  string reason = 4;
+  int64 slots = 5;
+  repeated FieldBinlog binlogs = 6;
+  repeated FieldBinlog statslogs = 7;
+}
+
 message QueryImportRequest {
   string clusterID = 1;
   int64 jobID = 2;
@@ -850,6 +891,11 @@ message ImportSegmentInfo {
   repeated FieldBinlog deltalogs = 5;
 }
 
+message AddFieldInfo {
+  int64 segmentID = 1;
+  repeated FieldBinlog binlogs = 3;
+}
+
 message QueryImportResponse {
   common.Status status = 1;
   int64 taskID = 2;
@@ -860,6 +906,12 @@ message QueryImportResponse {
 }
 
 message DropImportRequest {
+  string clusterID = 1;
+  int64 jobID = 2;
+  int64 taskID = 3;
+}
+
+message DropAddFieldRequest {
   string clusterID = 1;
   int64 jobID = 2;
   int64 taskID = 3;
@@ -994,4 +1046,31 @@ message PartitionStatsInfo {
 
 message DropCompactionPlanRequest {
   int64 planID = 1;
+}
+
+message AddFieldsJob {
+  int64 jobID = 1;
+  int64 dbID = 2;
+  int64 collectionID = 3;
+  repeated int64 partitionIDs = 4;
+  repeated int64 segmentIDs = 5;
+  repeated schema.FieldSchema fieldSchemas =6;
+  uint64 timeout_ts = 7;
+  uint64 cleanup_ts = 8;
+  internal.SchemaChangeState state = 9;
+  string complete_time = 10;
+  repeated common.KeyValuePair options = 11;
+  string start_time = 12;
+}
+
+message AddFieldsTask {
+  int64 jobID = 1;
+  int64 taskID = 2;
+  int64 collectionID = 3;
+  repeated int64 segmentIDs = 4;
+  repeated schema.FieldSchema fieldSchemas = 5;
+  int64 nodeID = 6;
+  internal.SchemaChangeState state = 7;
+  string complete_time = 8;
+  string created_time = 9;
 }

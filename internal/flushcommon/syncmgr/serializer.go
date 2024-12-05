@@ -32,6 +32,7 @@ import (
 // WriteBuffer into sync task.
 type Serializer interface {
 	EncodeBuffer(ctx context.Context, pack *SyncPack) (Task, error)
+	EncodeFieldBuffer(ctx context.Context, pack *SyncPack) (Task, error)
 }
 
 // SyncPack is the struct contains buffer sync data.

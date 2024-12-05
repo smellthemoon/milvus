@@ -283,7 +283,7 @@ func (t *l0CompactionTask) BuildCompactionRequest() (*datapb.CompactionPlan, err
 			IsSorted:      segInfo.GetIsSorted(),
 		})
 	}
-
+	// todo: lxg select here
 	// Select sealed L1 segments for LevelZero compaction that meets the condition:
 	// dmlPos < triggerInfo.pos
 	sealedSegments := t.meta.SelectSegments(context.TODO(), WithCollection(taskProto.GetCollectionID()), SegmentFilterFunc(func(info *SegmentInfo) bool {

@@ -286,7 +286,7 @@ func (c *compactionPlanHandler) schedule() []CompactionTask {
 			clusterLabelExcludes.Insert(t.GetLabel())
 			selected = append(selected, t)
 		}
-
+		// assign here
 		if t.NeedReAssignNodeID() {
 			if slots == nil {
 				slots = c.cluster.QuerySlots()

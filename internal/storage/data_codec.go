@@ -206,6 +206,71 @@ func (insertCodec *InsertCodec) SerializePkStatsByData(data *InsertData) (*Blob,
 	return nil, fmt.Errorf("there is no pk field")
 }
 
+func (insertCodec *InsertCodec) EncodeFieldBuffer(partitionID UniqueID, segmentID UniqueID, data *InsertData, ts uint64) ([]*Blob, error) {
+	if insertCodec.Schema == nil {
+		return nil, fmt.Errorf("schema is not set")
+	}
+
+	blobs := make([]*Blob, len(data.Data))
+
+	for _, field := range insertCodec.Schema.Schema.Fields {
+		// encode fields
+		writer := NewInsertBinlogWriter(field.DataType, insertCodec.Schema.ID, partitionID, segmentID, field.FieldID, field.GetNullable())
+
+		// get payload writing configs, including nullable and fallback encoding method
+		opts := []PayloadWriterOptions{WithNullable(field.GetNullable()), WithWriterProps(getFieldWriterProps(field))}
+		eventWriter, err := writer.NextInsertEventWriter(opts...)
+		if err != nil {
+			writer.Close()
+			return nil, err
+		}
+		eventWriter.SetEventTimestamp(ts, ts)
+		singleData := data.Data[field.FieldID]
+
+		rowNum := singleData.RowNum()
+		if rowNum <= 0 {
+			return nil, merr.WrapErrParameterInvalidMsg("there's no data in InsertData")
+		}
+		eventWriter.Reserve(int(rowNum))
+
+		var memorySize int64
+
+		blockMemorySize := singleData.GetMemorySize()
+		memorySize += int64(blockMemorySize)
+		if err = AddFieldDataToPayload(eventWriter, field.DataType, singleData); err != nil {
+			eventWriter.Close()
+			writer.Close()
+			return nil, err
+		}
+		writer.AddExtra(originalSizeKey, fmt.Sprintf("%v", blockMemorySize))
+		writer.SetEventTimeStamp(ts, ts)
+
+		err = writer.Finish()
+		if err != nil {
+			eventWriter.Close()
+			writer.Close()
+			return nil, err
+		}
+
+		buffer, err := writer.GetBuffer()
+		if err != nil {
+			eventWriter.Close()
+			writer.Close()
+			return nil, err
+		}
+		blobKey := fmt.Sprintf("%d", field.FieldID)
+		blobs = append(blobs, &Blob{
+			Key:        blobKey,
+			Value:      buffer,
+			RowNum:     int64(rowNum),
+			MemorySize: memorySize,
+		})
+		eventWriter.Close()
+		writer.Close()
+	}
+	return blobs, nil
+}
+
 // Serialize transforms insert data to blob. It will sort insert data by timestamp.
 // From schema, it gets all fields.
 // For each field, it will create a binlog writer, and write an event to the binlog.

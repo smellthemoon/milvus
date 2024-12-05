@@ -774,6 +774,70 @@ func (kc *Catalog) DropImportTask(ctx context.Context, taskID int64) error {
 	return kc.MetaKv.Remove(key)
 }
 
+func (kc *Catalog) SaveAddFieldsJob(ctx context.Context, job *datapb.AddFieldsJob) error {
+	key := buildAddFieldsJobKey(job.GetJobID())
+	value, err := proto.Marshal(job)
+	if err != nil {
+		return err
+	}
+	return kc.MetaKv.Save(key, string(value))
+}
+
+func (kc *Catalog) ListAddFieldsJobs(ctx context.Context) ([]*datapb.AddFieldsJob, error) {
+	jobs := make([]*datapb.AddFieldsJob, 0)
+	_, values, err := kc.MetaKv.LoadWithPrefix(AddFieldsJobPrefix)
+	if err != nil {
+		return nil, err
+	}
+	for _, value := range values {
+		job := &datapb.AddFieldsJob{}
+		err = proto.Unmarshal([]byte(value), job)
+		if err != nil {
+			return nil, err
+		}
+		jobs = append(jobs, job)
+	}
+	return jobs, nil
+}
+
+func (kc *Catalog) DropAddFieldsJob(ctx context.Context, jobID int64) error {
+	key := buildAddFieldsJobKey(jobID)
+	return kc.MetaKv.Remove(key)
+}
+
+func (kc *Catalog) SaveAddFieldsTask(ctx context.Context, task *datapb.AddFieldsTask) error {
+	key := buildAddFieldsTaskKey(task.GetTaskID())
+	value, err := proto.Marshal(task)
+	if err != nil {
+		return err
+	}
+	return kc.MetaKv.Save(key, string(value))
+}
+
+func (kc *Catalog) ListAddFieldsTasks(ctx context.Context) ([]*datapb.AddFieldsTask, error) {
+	tasks := make([]*datapb.AddFieldsTask, 0)
+
+	_, values, err := kc.MetaKv.LoadWithPrefix(AddFieldsTaskPrefix)
+	if err != nil {
+		return nil, err
+	}
+	for _, value := range values {
+		task := &datapb.AddFieldsTask{}
+		err = proto.Unmarshal([]byte(value), task)
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, task)
+	}
+
+	return tasks, nil
+}
+
+func (kc *Catalog) DropAddFieldsTask(ctx context.Context, taskID int64) error {
+	key := buildAddFieldsTaskKey(taskID)
+	return kc.MetaKv.Remove(key)
+}
+
 // GcConfirm returns true if related collection/partition is not found.
 // DataCoord will remove all the meta eventually after GC is finished.
 func (kc *Catalog) GcConfirm(ctx context.Context, collectionID, partitionID typeutil.UniqueID) bool {

@@ -411,3 +411,15 @@ func (s *Server) QuerySlot(ctx context.Context, req *datapb.QuerySlotRequest) (*
 func (s *Server) DropCompactionPlan(ctx context.Context, req *datapb.DropCompactionPlanRequest) (*commonpb.Status, error) {
 	return s.datanode.DropCompactionPlan(ctx, req)
 }
+
+func (s *Server) AddField(ctx context.Context, req *datapb.AddFieldRequest) (*commonpb.Status, error) {
+	return s.datanode.AddField(ctx, req)
+}
+
+func (s *Server) QueryAddField(ctx context.Context, req *datapb.QueryAddFieldRequest) (*datapb.QueryAddFieldResponse, error) {
+	return s.datanode.QueryAddField(ctx, req)
+}
+
+func (s *Server) DropAddField(ctx context.Context, req *datapb.DropAddFieldRequest) (*commonpb.Status, error) {
+	return s.datanode.DropAddField(ctx, req)
+}

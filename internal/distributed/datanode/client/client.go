@@ -277,3 +277,21 @@ func (c *Client) DropCompactionPlan(ctx context.Context, req *datapb.DropCompact
 		return client.DropCompactionPlan(ctx, req)
 	})
 }
+
+func (c *Client) AddField(ctx context.Context, req *datapb.AddFieldRequest, opts ...grpc.CallOption) (*commonpb.Status, error) {
+	return wrapGrpcCall(ctx, c, func(client datapb.DataNodeClient) (*commonpb.Status, error) {
+		return client.AddField(ctx, req)
+	})
+}
+
+func (c *Client) QueryAddField(ctx context.Context, req *datapb.QueryAddFieldRequest, opts ...grpc.CallOption) (*datapb.QueryAddFieldResponse, error) {
+	return wrapGrpcCall(ctx, c, func(client datapb.DataNodeClient) (*datapb.QueryAddFieldResponse, error) {
+		return client.QueryAddField(ctx, req)
+	})
+}
+
+func (c *Client) DropAddField(ctx context.Context, req *datapb.DropAddFieldRequest, opts ...grpc.CallOption) (*commonpb.Status, error) {
+	return wrapGrpcCall(ctx, c, func(client datapb.DataNodeClient) (*commonpb.Status, error) {
+		return client.DropAddField(ctx, req)
+	})
+}

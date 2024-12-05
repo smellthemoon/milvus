@@ -36,6 +36,7 @@ import (
 
 	"github.com/milvus-io/milvus-proto/go-api/v2/commonpb"
 	"github.com/milvus-io/milvus-proto/go-api/v2/milvuspb"
+	"github.com/milvus-io/milvus/internal/datanode/addfield"
 	"github.com/milvus-io/milvus/internal/datanode/allocator"
 	"github.com/milvus-io/milvus/internal/datanode/channel"
 	"github.com/milvus-io/milvus/internal/datanode/compaction"
@@ -101,6 +102,9 @@ type DataNode struct {
 	writeBufferManager writebuffer.BufferManager
 	importTaskMgr      importv2.TaskManager
 	importScheduler    importv2.Scheduler
+
+	schemaChangeTaskMgr   addfield.TaskManager
+	schemaChangeScheduler addfield.Scheduler
 
 	segmentCache             *util.Cache
 	compactionExecutor       compaction.Executor
@@ -271,6 +275,10 @@ func (node *DataNode) Init() error {
 
 		node.importTaskMgr = importv2.NewTaskManager()
 		node.importScheduler = importv2.NewScheduler(node.importTaskMgr)
+
+		node.schemaChangeTaskMgr = addfield.NewTaskManager()
+		node.schemaChangeScheduler = addfield.NewScheduler(node.schemaChangeTaskMgr)
+
 		node.channelCheckpointUpdater = util2.NewChannelCheckpointUpdater(node.broker)
 		node.flowgraphManager = pipeline.NewFlowgraphManager()
 

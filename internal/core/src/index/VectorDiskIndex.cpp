@@ -246,7 +246,7 @@ VectorDiskAnnIndex<T>::Query(const DatasetPtr dataset,
                "Metric type of field index isn't the same with search info");
     auto num_queries = dataset->GetRows();
     auto topk = search_info.topk_;
-
+    //
     knowhere::Json search_config = PrepareSearchParams(search_info);
 
     if (GetIndexType() == knowhere::IndexEnum::INDEX_DISKANN) {

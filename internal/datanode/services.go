@@ -573,3 +573,18 @@ func (node *DataNode) DropCompactionPlan(ctx context.Context, req *datapb.DropCo
 	log.Ctx(ctx).Info("DropCompactionPlans success", zap.Int64("planID", req.GetPlanID()))
 	return merr.Success(), nil
 }
+
+func (node *DataNode) AddField(ctx context.Context, req *datapb.AddFieldRequest) (*commonpb.Status, error) {
+	if err := merr.CheckHealthy(node.GetStateCode()); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (node *DataNode) QueryAddField(ctx context.Context, req *datapb.QueryAddFieldRequest) (*datapb.QueryAddFieldResponse, error) {
+	return nil, nil
+}
+
+func (node *DataNode) DropAddField(ctx context.Context, req *datapb.DropAddFieldRequest) (*commonpb.Status, error) {
+	return nil, nil
+}
