@@ -2185,6 +2185,7 @@ func GetRequestInfo(ctx context.Context, req interface{}) (int64, map[int64][]in
 		if req == nil {
 			return util.InvalidDBID, map[int64][]int64{}, 0, 0, fmt.Errorf("null request")
 		}
+		log.RatedWarn(60, "not supported request type for rate limiter", zap.Any("req", req))
 		return util.InvalidDBID, map[int64][]int64{}, 0, 0, nil
 	}
 }
